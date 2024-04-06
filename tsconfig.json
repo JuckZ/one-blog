@@ -22,13 +22,15 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
       "@*": [
         "./src/*"
       ],
       "@pages/*": [
         "./pages/*"
-      ]
+      ],
+      "contentlayer/generated": ["./.contentlayer/generated"]
     },
     "incremental": true
   },
@@ -36,6 +38,7 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    ".contentlayer/generated",
     ".next/types/**/*.ts"
   ],
   "exclude": [

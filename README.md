@@ -1,5 +1,25 @@
 # One Blog
 
+## TODO
+
+- [ ] learn from [tailwind-nextjs-starter-blog](https://github.com/timlrx/tailwind-nextjs-starter-blog/blob/main/app/blog/page.tsx)
+- [ ] 弄清楚filePathPattern的语法
+    // 这种语法可能是用于文件路径匹配的glob模式，如下实例可以参考
+    // filePathPattern: `blog/**/*.{mdx,md}`,
+    // filePathPattern: `pages/friends/*.md?(x)`,
+    // filePathPattern: "**/{readme,README}.md",
+    // filePathPattern: "recipes/!(index)*.md*",
+    // filePathPattern: `(docs|blog|resources)/**/*.mdx`,
+    // filePathPattern: `**/!{Archive,MyObsidian,Areas}/**/*.mdx`,
+    // filePathPattern: `Resources/**/*.md`,
+- [ ] 重新配置contentDirExclude
+- [ ] 配置draft功能
+- [ ] 配置类似于obsidian双链预览功能
+  - [ ] [linked-blog-starter](https://github.com/matthewwong525/linked-blog-starter/blob/main/components/misc/preview-link.tsx)
+  - [ ] [gatsby-remark-obsidian](https://github.com/johackim/gatsby-remark-obsidian)
+- [ ] [Routing: Internationalization | Next.js](https://nextjs.org/docs/pages/building-your-application/routing/internationalization)
+- [ ] [Webpack warnings when using `next.config.mjs` · Issue #272 · contentlayerdev/contentlayer](https://github.com/contentlayerdev/contentlayer/issues/272)
+
 ## How get this
 
 `npm create refine-app@latest`
