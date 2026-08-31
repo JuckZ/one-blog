@@ -8,6 +8,9 @@
 
 # testing
 /coverage
+/.playwright-cli/
+/playwright-report/
+/test-results/
 
 # next.js
 /.next/
@@ -31,9 +34,16 @@ yarn-error.log*
 # vercel
 .vercel
 
+# generated Quartz build output and plugin cache
+/.quartz-output/
+/.quartz/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
 # others
 .contentlayer
+.vercel-dry-run.json
+.env*
+!.env.example

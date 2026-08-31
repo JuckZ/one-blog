@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 2,
+  "defaultLocale": "zh",
+  "locales": [
+    "zh",
+    "en"
+  ],
+  "translations": {
+    "home": {
+      "en": {
+        "path": "index-en.md",
+        "url": "/en/posts/home",
+        "quartzUrl": "/en"
+      },
+      "zh": {
+        "path": "index.md",
+        "url": "/zh/posts/home",
+        "quartzUrl": "/zh"
+      }
+    },
+    "quartz-i18n-example": {
+      "en": {
+        "path": "Projects/Blog/quartz-i18n-example-en.md",
+        "url": "/en/posts/quartz-i18n-example",
+        "quartzUrl": "/en/projects/blog/quartz-i18n-example"
+      },
+      "zh": {
+        "path": "Projects/Blog/quartz-i18n-example-zh.md",
+        "url": "/zh/posts/quartz-i18n-example",
+        "quartzUrl": "/zh/projects/blog/quartz-i18n-example"
+      }
+    }
+  },
+  "posts": [
+    {
+      "title": "One Blog",
+      "summary": "A personal digital garden about software engineering, AI tools, knowledge management, and product practice.",
+      "date": "2026-08-30T00:00:00.000Z",
+      "lang": "en",
+      "htmlLang": "en-US",
+      "translationKey": "home",
+      "publish": true,
+      "tags": [
+        "digital-garden",
+        "index"
+      ],
+      "slug": "home",
+      "path": "index-en.md",
+      "url": "/en/posts/home",
+      "quartzSlug": "index",
+      "quartzUrl": "/en",
+      "content": "# One Blog\n\nWelcome to my personal digital garden. I write about ideas, experiments, and lessons from software engineering, AI tools, personal knowledge management, and product practice.\n\n> [!abstract] What is this place?\n> It is not a chronological feed that disappears after being read. It is a growing set of public notes that remain connected and are revised as my work develops.\n\n## Start here\n\n- [Quartz Chinese–English switching example](/en/posts/quartz-i18n-example): see how two translations behave as one article across navigation and the graph.\n\n## Topics\n\n- **Software engineering**: development methods, engineering productivity, quality, and automation.\n- **AI and tools**: AI-assisted workflows, tool design, and practical experience.\n- **Knowledge management**: Obsidian, bidirectional links, and knowledge-base governance.\n- **Product practice**: from problem discovery and solution design to delivery reviews.\n\n## Publishing principle\n\nOnly notes explicitly marked with `publish: true` in frontmatter appear here. The original vault directory structure remains unchanged, and private notes never enter the site build input.\n\n> [!tip]\n> Use the explorer, search, and graph to navigate public notes. They remain within the selected language unless you explicitly follow a language fallback."
+    },
+    {
+      "title": "One Blog",
+      "summary": "记录软件工程、AI 工具、个人知识管理与产品实践的个人数字花园。",
+      "date": "2026-08-30T00:00:00.000Z",
+      "lang": "zh",
+      "htmlLang": "zh-CN",
+      "translationKey": "home",
+      "publish": true,
+      "tags": [
+        "digital-garden",
+        "index"
+      ],
+      "slug": "home",
+      "path": "index.md",
+      "url": "/zh/posts/home",
+      "quartzSlug": "index",
+      "quartzUrl": "/zh",
+      "content": "# One Blog\n\n欢迎来到我的个人数字花园。这里记录我在软件工程、AI 工具、个人知识管理和产品实践中的思考、实验与阶段性成果。\n\n> [!abstract] 这里是什么\n> 这不是一份按时间消费完就结束的信息流，而是一组持续生长、彼此连接的公开笔记。内容会随着实践不断修订和补充。\n\n## 从这里开始\n\n- [Quartz 中英文切换示例](/zh/posts/quartz-i18n-example)：查看同一篇文章如何在中文和英文版本之间切换。\n\n## 关注的主题\n\n- **软件工程**：开发方法、工程效率、质量保障与自动化。\n- **AI 与工具**：AI 辅助工作流、工具设计与真实使用经验。\n- **知识管理**：Obsidian、双向链接和个人知识库治理。\n- **产品实践**：从问题发现、方案设计到交付复盘。\n\n## 发布原则\n\n只有经过明确筛选、frontmatter 中设置了 `publish: true` 的笔记才会出现在这里。原知识库目录保持不变，未发布内容不会进入站点构建输入。\n\n> [!tip]\n> 可以使用左侧导航、搜索和关系图谱探索已经公开的内容。"
+    },
+    {
+      "title": "Quartz Chinese–English Switching Example",
+      "summary": "An English example demonstrating how One Blog pairs and switches translated articles.",
+      "date": "2026-08-30T00:00:00.000Z",
+      "lang": "en",
+      "htmlLang": "en-US",
+      "translationKey": "quartz-i18n-example",
+      "publish": true,
+      "tags": [
+        "blog",
+        "quartz",
+        "i18n"
+      ],
+      "slug": "quartz-i18n-example",
+      "path": "Projects/Blog/quartz-i18n-example-en.md",
+      "url": "/en/posts/quartz-i18n-example",
+      "quartzSlug": "projects/blog/quartz-i18n-example",
+      "quartzUrl": "/en/projects/blog/quartz-i18n-example",
+      "content": "# Quartz Chinese–English Switching Example\n\nThis is the English version of the example article. It remains in the vault's existing `Projects/Blog` directory instead of being moved to a dedicated publishing folder.\n\n## Publishing rule\n\nThe site publishes only notes whose frontmatter explicitly contains `publish: true`. Private notes without that property never enter the Quartz build input.\n\n## Translation pairing\n\nThe Chinese and English notes share `translationKey: quartz-i18n-example`. During the build, One Blog recognizes the pair and adds a language switcher in the upper-right corner.\n\n> [!tip]\n> Select **中文** to open the Chinese version. After switching to English, search, explorer, and graph navigation use only the English content index.\n\nReturn to the [home page](/en/posts/home) to continue exploring the English graph."
+    },
+    {
+      "title": "Quartz 中英文切换示例",
+      "summary": "一篇用于演示 One Blog 中英文文章配对与切换的中文示例。",
+      "date": "2026-08-30T00:00:00.000Z",
+      "lang": "zh",
+      "htmlLang": "zh-CN",
+      "translationKey": "quartz-i18n-example",
+      "publish": true,
+      "tags": [
+        "blog",
+        "quartz",
+        "i18n"
+      ],
+      "slug": "quartz-i18n-example",
+      "path": "Projects/Blog/quartz-i18n-example-zh.md",
+      "url": "/zh/posts/quartz-i18n-example",
+      "quartzSlug": "projects/blog/quartz-i18n-example",
+      "quartzUrl": "/zh/projects/blog/quartz-i18n-example",
+      "content": "# Quartz 中英文切换示例\n\n这是这篇示例文章的中文版本。它仍然保存在知识库原有的 `Projects/Blog` 目录中，没有移动到专门的发布目录。\n\n## 发布规则\n\n本站只发布 frontmatter 中明确设置 `publish: true` 的笔记。未设置该属性的私人笔记不会进入 Quartz 的构建输入。\n\n## 语言配对\n\n中文与英文笔记使用相同的 `translationKey: quartz-i18n-example`。构建时，One Blog 会识别这组对应关系，并在页面右上角生成语言切换入口。\n\n> [!tip]\n> 点击 **English** 即可打开英文版本；切换后，搜索、目录和关系图谱都只使用英文内容索引。\n\n返回 [首页](/zh/posts/home)，可以继续从中文图谱浏览。"
+    }
+  ]
+}

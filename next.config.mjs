@@ -1,5 +1,17 @@
-import { withContentlayer } from 'next-contentlayer'
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  env: {
+    SITE_ENGINE: process.env.SITE_ENGINE ?? "next",
+  },
+  experimental:
+    process.env.SITE_ENGINE === "quartz"
+      ? {
+          outputFileTracingIncludes: {
+            "/*": ["./.quartz-output/**/*"],
+          },
+        }
+      : undefined,
+  poweredByHeader: false,
+};
 
-export default withContentlayer(nextConfig);
+export default nextConfig;

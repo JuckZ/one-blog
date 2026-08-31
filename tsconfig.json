@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2017",
     "lib": [
       "dom",
       "dom.iterable",
@@ -29,8 +29,7 @@
       ],
       "@pages/*": [
         "./pages/*"
-      ],
-      "contentlayer/generated": ["./.contentlayer/generated"]
+      ]
     },
     "incremental": true
   },
@@ -38,10 +37,12 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".contentlayer/generated",
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "quartz-engine",
+    ".quartz-content",
+    ".quartz-output"
   ]
 }

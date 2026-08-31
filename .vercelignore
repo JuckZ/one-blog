@@ -1,0 +1,16 @@
+# Never upload the private Obsidian vault. Both engines consume generated,
+# publish-only artifacts instead.
+/posts/**
+
+# Keep the generated safe publication inputs.
+!/.quartz-content/**
+!/src/generated/published-content.json
+
+# Local-only project files
+.agents/
+.codex/
+.cursor/
+.playwright-cli/
+.quartz-output/
+.quartz/
+Dockerfile

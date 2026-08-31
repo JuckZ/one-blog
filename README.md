@@ -1,5 +1,17 @@
 # One Blog
 
+This repository supports two interchangeable site engines over the same Obsidian vault:
+
+- `SITE_ENGINE=next` — the existing Next.js + Refine application.
+- `SITE_ENGINE=quartz` — Quartz v5, served through the same Next.js/Vercel entrypoint.
+
+Both engines publish only notes with a strict YAML boolean `publish: true`. See
+[`docs/publishing.md`](docs/publishing.md) for the publishing and i18n contract.
+
+CI builds both engines and runs the bilingual Quartz Playwright regression suite. A successful
+`main` build is deployed through the repository's Vercel GitHub Actions workflow; the active engine
+is selected only through `SITE_ENGINE=quartz|next` in the permanent Vercel project.
+
 ## TODO
 
 - [ ] learn from [tailwind-nextjs-starter-blog](https://github.com/timlrx/tailwind-nextjs-starter-blog/blob/main/app/blog/page.tsx)

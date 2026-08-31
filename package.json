@@ -3,11 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "refine build",
-    "dev": "cross-env NODE_OPTIONS=--max_old_space_size=4096 refine dev --port 3001",
+    "build": "node scripts/site-engine.mjs build",
+    "build:next": "cross-env SITE_ENGINE=next node scripts/site-engine.mjs build",
+    "build:quartz": "cross-env SITE_ENGINE=quartz node scripts/site-engine.mjs build",
+    "content:prepare": "node scripts/prepare-published-content.mjs",
+    "content:test": "node scripts/test-publication-pipeline.mjs",
+    "content:verify": "node scripts/prepare-published-content.mjs --check",
+    "dev": "node scripts/site-engine.mjs dev",
+    "dev:next": "cross-env SITE_ENGINE=next node scripts/site-engine.mjs dev",
+    "dev:quartz": "cross-env SITE_ENGINE=quartz node scripts/site-engine.mjs dev",
     "lint": "eslint '**/*.{js,jsx,ts,tsx}'",
+    "pretest:e2e": "cross-env QUARTZ_BASE_URL=http://127.0.0.1:3100 NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3100 npm run build:quartz",
+    "test": "npm run content:test",
+    "test:e2e": "playwright test",
+    "test:e2e:run": "playwright test",
     "refine": "refine",
-    "start": "refine start"
+    "start": "next start",
+    "vercel:preview:prepare": "node scripts/prepare-anonymous-vercel-preview.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.8.2",
@@ -24,17 +36,18 @@
     "@refinedev/nextjs-router": "^6.0.0",
     "@refinedev/react-hook-form": "^4.8.14",
     "@refinedev/supabase": "^5.7.4",
-    "contentlayer": "^0.3.4",
     "date-fns": "^3.3.1",
     "github-slugger": "^2.0.0",
+    "gray-matter": "^4.0.3",
     "js-cookie": "^3.0.5",
-    "next": "14.1.3",
-    "next-contentlayer": "^0.3.4",
-    "pliny": "^0.1.7",
+    "next": "14.2.35",
     "react": "^18.0.0",
-    "react-dom": "^18.0.0"
+    "react-dom": "^18.0.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
+    "@playwright/test": "1.62.1",
     "@tailwindcss/typography": "^0.5.10",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^18.0.0",
@@ -47,7 +60,7 @@
     "eslint-config-next": "14.1.3",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
-    "typescript": "^4.7.4"
+    "typescript": "^5.9.2"
   },
   "engines": {
     "node": ">=18.0.0"
