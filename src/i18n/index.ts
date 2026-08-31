@@ -26,6 +26,7 @@ export const dictionaries = {
     publishedOn: "发布于",
     backToPosts: "返回文章列表",
     switchLanguage: "切换语言",
+    peerSite: "Quartz 版",
     publicationNote: "只有 frontmatter 中严格设置 publish: true 的笔记才会公开。",
   },
   en: {
@@ -40,6 +41,7 @@ export const dictionaries = {
     publishedOn: "Published on",
     backToPosts: "Back to posts",
     switchLanguage: "Switch language",
+    peerSite: "Quartz site",
     publicationNote: "Only notes with a strict publish: true frontmatter value are public.",
   },
 } as const;

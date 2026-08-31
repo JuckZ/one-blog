@@ -11,6 +11,7 @@ interface PublicHeaderProps {
 export function PublicHeader({ locale, alternateHref }: PublicHeaderProps) {
   const dictionary = getDictionary(locale);
   const targetLocale: Locale = locale === "zh" ? "en" : "zh";
+  const peerSiteUrl = process.env.NEXT_PUBLIC_PEER_SITE_URL;
 
   return (
     <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
@@ -22,6 +23,16 @@ export function PublicHeader({ locale, alternateHref }: PublicHeaderProps) {
           <Link href={`/${locale}/posts`} className="text-slate-700 hover:text-slate-950">
             {dictionary.posts}
           </Link>
+          {peerSiteUrl ? (
+            <a
+              href={peerSiteUrl}
+              target="_blank"
+              rel="friend noopener noreferrer"
+              className="text-slate-700 hover:text-slate-950"
+            >
+              {dictionary.peerSite}
+            </a>
+          ) : null}
           <LanguageLink
             href={alternateHref ?? `/${targetLocale}`}
             hrefLang={localeConfig[targetLocale].htmlLang}

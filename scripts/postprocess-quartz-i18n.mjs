@@ -163,14 +163,18 @@ function createClientScript(alternates, translationKeys) {
 }
 
 const switcherCss = `
-#one-blog-language-switcher {
+#one-blog-site-controls {
   position: fixed;
   top: 0.75rem;
   right: 0.75rem;
   z-index: 1000;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
-#one-blog-language-switcher a {
+#one-blog-site-controls nav { margin: 0; }
+#one-blog-site-controls a {
   display: inline-flex;
   align-items: center;
   min-height: 2rem;
@@ -185,7 +189,7 @@ const switcherCss = `
   backdrop-filter: blur(8px);
   box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
 }
-#one-blog-language-switcher a:hover {
+#one-blog-site-controls a:hover {
   color: var(--secondary);
   border-color: var(--secondary);
 }
@@ -206,12 +210,18 @@ const switcherCss = `
   backdrop-filter: blur(8px);
 }
 @media (max-width: 800px) {
-  #one-blog-language-switcher { top: auto; bottom: 0.75rem; }
+  #one-blog-site-controls {
+    top: auto;
+    bottom: 0.75rem;
+    max-width: calc(100vw - 1.5rem);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
   #one-blog-translation-notice { max-width: calc(100vw - 1.5rem); }
 }
 `;
 
-export async function postprocessQuartzLocale({ locale, outputRoot, siteOrigin }) {
+export async function postprocessQuartzLocale({ locale, outputRoot, siteOrigin, peerSiteUrl }) {
   if (locale !== "zh" && locale !== "en") throw new Error(`Unsupported Quartz locale: ${locale}`);
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   const posts = manifest.posts ?? [];
@@ -238,7 +248,11 @@ export async function postprocessQuartzLocale({ locale, outputRoot, siteOrigin }
       : `/${targetLocale}`;
     const targetHref = alternateUrls[targetLocale] ?? missingTranslationHref;
     const navLabel = locale === "zh" ? "切换语言" : "Switch language";
-    const nav = `<nav id="one-blog-language-switcher" aria-label="${navLabel}"><a href="${escapeHtml(targetHref)}" hreflang="${targetLocale === "zh" ? "zh-CN" : "en-US"}" data-one-blog-lang="${targetLocale}" data-router-ignore>${targetLabel}</a></nav>`;
+    const peerLabel = locale === "zh" ? "Refine 版" : "Refine site";
+    const peerLink = peerSiteUrl
+      ? `<a id="one-blog-peer-link" href="${escapeHtml(peerSiteUrl)}" target="_blank" rel="friend noopener noreferrer" data-router-ignore>${peerLabel}</a>`
+      : "";
+    const nav = `<div id="one-blog-site-controls">${peerLink}<nav id="one-blog-language-switcher" aria-label="${navLabel}"><a href="${escapeHtml(targetHref)}" hreflang="${targetLocale === "zh" ? "zh-CN" : "en-US"}" data-one-blog-lang="${targetLocale}" data-router-ignore>${targetLabel}</a></nav></div>`;
 
     const headLinks = [`<link rel="stylesheet" href="/${locale}/static/one-blog-i18n.css" data-persist="true"/>`];
     if (post && siteOrigin) {
@@ -271,5 +285,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const locale = process.argv[2];
   const outputRoot = path.resolve(process.argv[3] ?? path.join(projectRoot, ".quartz-output", locale));
   const siteOrigin = process.argv[4];
-  await postprocessQuartzLocale({ locale, outputRoot, siteOrigin });
+  const peerSiteUrl = process.argv[5];
+  await postprocessQuartzLocale({ locale, outputRoot, siteOrigin, peerSiteUrl });
 }

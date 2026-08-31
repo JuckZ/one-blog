@@ -51,11 +51,14 @@ jobs:
 
       - name: Build Next and Refine engine
         run: npm run build:next
+        env:
+          NEXT_PUBLIC_PEER_SITE_URL: https://quartz.example.test
 
       - name: Build Quartz engine for regression tests
         run: npm run build:quartz
         env:
           NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3100
+          NEXT_PUBLIC_PEER_SITE_URL: https://refine.example.test
           QUARTZ_BASE_URL: http://127.0.0.1:3100
           QUARTZ_LOCALES: zh-CN,en-US
 
@@ -66,6 +69,7 @@ jobs:
         run: npm run test:e2e:run
         env:
           CI: "true"
+          NEXT_PUBLIC_PEER_SITE_URL: https://refine.example.test
 
       - name: Upload Playwright report on failure
         if: failure()

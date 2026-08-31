@@ -119,6 +119,26 @@ test.describe("Quartz bilingual publication", () => {
     expect(resultTitles.some((title) => /[\u3400-\u9fff]/u.test(title))).toBe(false);
   });
 
+  test("Chinese-only Chocolatey stays out of English indexes and falls back with a notice", async ({ page, request }) => {
+    const chineseIndexResponse = await request.get("/zh/static/contentIndex.json");
+    const englishIndexResponse = await request.get("/en/static/contentIndex.json");
+    expect(chineseIndexResponse.ok()).toBe(true);
+    expect(englishIndexResponse.ok()).toBe(true);
+    expect(await chineseIndexResponse.text()).toContain("Chocolatey");
+    expect(await englishIndexResponse.text()).not.toContain("Chocolatey");
+
+    await page.goto("/zh/areas/os/chocolatey");
+    await expect(page.getByRole("heading", { level: 1, name: "Chocolatey" }).first()).toBeVisible();
+    const englishSwitch = page.getByRole("navigation", { name: "切换语言" })
+      .getByRole("link", { name: "English" });
+    await expect(englishSwitch).toHaveAttribute("href", "/en?translation=missing&from=chocolatey");
+    await englishSwitch.click();
+    await expect(page).toHaveURL(/\/en\?translation=missing&from=chocolatey$/);
+    await expect(page.locator("#one-blog-translation-notice")).toContainText(
+      "This article is not available in English yet",
+    );
+  });
+
   test("all generated internal links retain the active locale", async ({ page }) => {
     await page.goto("/en");
     await expectLocalizedInternalLinks(page, "en");
@@ -131,19 +151,38 @@ test.describe("Quartz bilingual publication", () => {
     await expectLocalizedInternalLinks(page, "zh");
   });
 
-  test("mobile language switch remains visible and usable", async ({ page }) => {
+  test("mobile friend and language controls remain visible, separate, and usable", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/zh");
+    const friend = page.getByRole("link", { name: "Refine 版" });
     const switcher = page.getByRole("navigation", { name: "切换语言" }).getByRole("link", { name: "English" });
+    await expect(friend).toBeVisible();
     await expect(switcher).toBeVisible();
-    const box = await switcher.boundingBox();
-    expect(box).not.toBeNull();
-    expect(box!.x).toBeGreaterThanOrEqual(0);
-    expect(box!.y).toBeGreaterThanOrEqual(0);
-    expect(box!.x + box!.width).toBeLessThanOrEqual(390);
-    expect(box!.y + box!.height).toBeLessThanOrEqual(844);
+    const [friendBox, switcherBox] = await Promise.all([friend.boundingBox(), switcher.boundingBox()]);
+    expect(friendBox).not.toBeNull();
+    expect(switcherBox).not.toBeNull();
+    for (const box of [friendBox!, switcherBox!]) {
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.y).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(390);
+      expect(box.y + box.height).toBeLessThanOrEqual(844);
+    }
+    const overlapWidth = Math.min(friendBox!.x + friendBox!.width, switcherBox!.x + switcherBox!.width)
+      - Math.max(friendBox!.x, switcherBox!.x);
+    const overlapHeight = Math.min(friendBox!.y + friendBox!.height, switcherBox!.y + switcherBox!.height)
+      - Math.max(friendBox!.y, switcherBox!.y);
+    expect(overlapWidth > 0 && overlapHeight > 0).toBe(false);
     await switcher.click();
     await expect(page).toHaveURL(/\/en$/);
+  });
+
+  test("Quartz exposes the configured Refine site as a friend link", async ({ page }) => {
+    await page.goto("/zh");
+    const friend = page.getByRole("link", { name: "Refine 版" });
+    await expect(friend).toBeVisible();
+    await expect(friend).toHaveAttribute("href", process.env.NEXT_PUBLIC_PEER_SITE_URL!);
+    await expect(friend).toHaveAttribute("rel", "friend noopener noreferrer");
+    await expect(friend).toHaveAttribute("target", "_blank");
   });
 
   test("robots, sitemap, canonical and hreflang cover both Quartz locales", async ({ page, request, baseURL }) => {
@@ -157,11 +196,13 @@ test.describe("Quartz bilingual publication", () => {
     for (const pathname of [
       "/zh",
       "/en",
+      "/zh/areas/os/chocolatey",
       "/zh/projects/blog/quartz-i18n-example",
       "/en/projects/blog/quartz-i18n-example",
     ]) {
       expect(sitemapXml).toContain(`${baseURL}${pathname}`);
     }
+    expect(sitemapXml).not.toContain(`${baseURL}/en/areas/os/chocolatey`);
 
     const englishArticle = "/en/projects/blog/quartz-i18n-example";
     await page.goto(englishArticle);

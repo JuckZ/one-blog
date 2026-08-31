@@ -29,6 +29,13 @@
         "url": "/zh/posts/quartz-i18n-example",
         "quartzUrl": "/zh/projects/blog/quartz-i18n-example"
       }
+    },
+    "chocolatey": {
+      "zh": {
+        "path": "Areas/OS/Chocolatey.md",
+        "url": "/zh/posts/chocolatey",
+        "quartzUrl": "/zh/areas/os/chocolatey"
+      }
     }
   },
   "posts": [
@@ -109,6 +116,26 @@
       "quartzSlug": "projects/blog/quartz-i18n-example",
       "quartzUrl": "/zh/projects/blog/quartz-i18n-example",
       "content": "# Quartz 中英文切换示例\n\n这是这篇示例文章的中文版本。它仍然保存在知识库原有的 `Projects/Blog` 目录中，没有移动到专门的发布目录。\n\n## 发布规则\n\n本站只发布 frontmatter 中明确设置 `publish: true` 的笔记。未设置该属性的私人笔记不会进入 Quartz 的构建输入。\n\n## 语言配对\n\n中文与英文笔记使用相同的 `translationKey: quartz-i18n-example`。构建时，One Blog 会识别这组对应关系，并在页面右上角生成语言切换入口。\n\n> [!tip]\n> 点击 **English** 即可打开英文版本；切换后，搜索、目录和关系图谱都只使用英文内容索引。\n\n返回 [首页](/zh/posts/home)，可以继续从中文图谱浏览。"
+    },
+    {
+      "title": "Chocolatey",
+      "summary": "在 Windows 上安装和使用 Chocolatey，并通过命令行或图形界面管理软件包。",
+      "date": "2024-01-29T00:00:00.000Z",
+      "lang": "zh",
+      "htmlLang": "zh-CN",
+      "translationKey": "chocolatey",
+      "publish": true,
+      "tags": [
+        "windows",
+        "package-manager",
+        "chocolatey"
+      ],
+      "slug": "chocolatey",
+      "path": "Areas/OS/Chocolatey.md",
+      "url": "/zh/posts/chocolatey",
+      "quartzSlug": "areas/os/chocolatey",
+      "quartzUrl": "/zh/areas/os/chocolatey",
+      "content": "# Chocolatey\n\n如果你曾经在 Linux 或 macOS 上使用过包管理器，可能会觉得在 Windows 上逐个寻找官网、下载安装包并手动升级软件有些繁琐。\n\nChocolatey 是 Windows 上的包管理器，可以用一组一致的命令查找、安装、升级和卸载软件。本教程介绍 Chocolatey CLI 2.x 的基础用法。\n\n## 安装 Chocolatey\n\n> [!warning] 使用管理员终端\n> 从开始菜单打开“Windows PowerShell”或“终端”，选择“以管理员身份运行”。执行远程安装脚本前，建议先查看脚本内容并确认来源。\n\n在管理员 PowerShell 中执行官方安装命令[^1]：\n\n```powershell\nSet-ExecutionPolicy Bypass -Scope Process -Force; `\n[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `\niwr https://community.chocolatey.org/install.ps1 -UseBasicParsing | iex\n```\n\n安装完成后，重新打开终端并确认版本：\n\n```powershell\nchoco --version\n```\n\n## 使用 Chocolatey\n\n安装 Chocolatey 后，可以使用 `choco` 命令管理软件包。以下命令中的尖括号表示需要替换的参数，不要原样输入。\n\n### 查找软件包\n\n查找名称或描述中包含关键词的软件包：\n\n```powershell\nchoco search <search-term>\n```\n\n### 安装软件包\n\n安装软件包；`-y` 表示自动确认提示：\n\n```powershell\nchoco install <package-name> -y\n```\n\n### 升级软件包\n\n升级指定软件包：\n\n```powershell\nchoco upgrade <package-name> -y\n```\n\n### 升级所有软件包\n\n升级所有由 Chocolatey 管理的软件包：\n\n```powershell\nchoco upgrade all -y\n```\n\n### 列出已安装的软件包\n\nChocolatey CLI 2.0 起，直接使用 `choco list` 列出本机已安装的软件包；不再需要旧的 `--local-only` 参数，普通输出下继续使用它会报错[^2]：\n\n```powershell\nchoco list\n```\n\n### 卸载软件包\n\n卸载软件包：\n\n```powershell\nchoco uninstall <package-name> -y\n```\n\n## Chocolatey GUI\n\nChocolatey GUI 提供图形化的软件包管理界面。使用管理员 PowerShell 安装[^3]：\n\n```powershell\nchoco install chocolateygui -y\n```\n\n## Reference\n\n[^1]: [Chocolatey Docs：Set up Chocolatey CLI](https://docs.chocolatey.org/en-us/choco/setup/)\n[^2]: [Chocolatey Docs：New features for Chocolatey CLI v2.0.0](https://docs.chocolatey.org/en-us/choco/new-in-v2/)\n[^3]: [Chocolatey GUI Docs：Installation](https://docs.chocolatey.org/en-us/chocolatey-gui/setup/installation/)"
     }
   ]
 }

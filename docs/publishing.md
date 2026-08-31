@@ -81,9 +81,9 @@ translationKey: quartz-i18n-design
 文章右上角的语言入口会回退到目标语言首页，并显示“译文尚未提供”的提示，不会偷偷打开另一
 语言的文章或复用上一语言的 Quartz 索引。
 
-## 3. 切换站点引擎
+## 3. 双站点与站点引擎
 
-环境变量 `SITE_ENGINE` 接受 `next` 或 `quartz`，默认 `next`：
+环境变量 `SITE_ENGINE` 接受 `next` 或 `quartz`，默认 `next`。本地仍可随时切换：
 
 ```powershell
 $env:SITE_ENGINE = "next"
@@ -106,13 +106,25 @@ Quartz 模式先生成静态 Quartz 站点，再由一个很薄的 Next.js 适�
 仍使用现有 Next.js 项目配置，只需修改 `SITE_ENGINE` 环境变量，无需更换 Framework Preset
 或 Output Directory。
 
-Vercel 保留 Framework Preset 为 Next.js、Build Command 为 `npm run build`。正式环境设置：
+正式发布使用两个绑定同一 GitHub 仓库的 Vercel 项目。两者都保留 Framework Preset 为
+Next.js、Build Command 为 `npm run build`，并通过 `NEXT_PUBLIC_PEER_SITE_URL` 互相显示为友链。
+
+Quartz 项目的 Production 环境：
 
 ```text
 SITE_ENGINE=quartz
 QUARTZ_LOCALES=zh-CN,en-US
 QUARTZ_BASE_URL=https://one-blog-bay.vercel.app
 NEXT_PUBLIC_SITE_URL=https://one-blog-bay.vercel.app
+NEXT_PUBLIC_PEER_SITE_URL=https://one-blog-refine.vercel.app
+```
+
+Refine 项目的 Production 环境：
+
+```text
+SITE_ENGINE=next
+NEXT_PUBLIC_SITE_URL=https://one-blog-refine.vercel.app
+NEXT_PUBLIC_PEER_SITE_URL=https://one-blog-bay.vercel.app
 ```
 
 Preview 环境可使用 `QUARTZ_BASE_URL=auto`。构建脚本会读取 Vercel 在构建阶段注入的
@@ -163,20 +175,21 @@ npm run test:e2e
 回归范围包括语言协商、Cookie 优先级、语言偏好持久化、跨语言整页加载、内部链接语言前缀、
 英文 Search/Explorer/Graph/Backlinks 隔离、移动端按钮以及 robots/sitemap/canonical/hreflang。
 
-CI 通过后，`.github/workflows/deploy-vercel.yml` 会触发 `main` 的永久 Vercel Production
-构建。为避免 Vercel Git 集成与 GitHub Actions 重复部署，`vercel.json` 已关闭
+CI 通过后，`.github/workflows/deploy-vercel.yml` 会分别触发 Quartz 和 Refine 的永久 Vercel
+Production 构建。为避免 Vercel Git 集成与 GitHub Actions 重复部署，`vercel.json` 已关闭
 Vercel 自带的即时 Git 自动部署；`CI` 成功后由 GitHub Actions 调用仅绑定 `main` 的 Vercel
 Deploy Hook，因此正式发布仍是单一路径：push -> CI -> Vercel Production。
 
-仓库需配置两个最小权限 GitHub Actions Secrets：
+仓库需配置三个最小权限 GitHub Actions Secrets：
 
 ```text
-VERCEL_DEPLOY_HOOK
+VERCEL_QUARTZ_DEPLOY_HOOK
+VERCEL_REFINE_DEPLOY_HOOK
 POSTS_DEPLOY_KEY
 ```
 
-Deploy Hook 由 Vercel 项目生成，只能触发该项目的 `main` 分支构建，不需要把个人 Vercel
-Access Token 交给 GitHub。`POSTS_DEPLOY_KEY` 是 `one-hub` 的只读 Deploy Key。两者都不应
+两个 Deploy Hook 分别由对应 Vercel 项目生成，只能触发该项目的 `main` 分支构建，不需要把个人 Vercel
+Access Token 交给 GitHub。`POSTS_DEPLOY_KEY` 是 `one-hub` 的只读 Deploy Key。这些 Secret 都不应
 写入仓库或日志。
 
 Secret 只保存在 GitHub，不提交到仓库。
@@ -194,8 +207,8 @@ npm run test:e2e:run
 2. 在 one-blog 根目录运行 `npm run content:prepare`。
 3. 提交 `posts` 子模块指针、`.quartz-content/`、`src/generated/published-content.json` 和站点代码。
 4. 推送 one-blog 的 `main` 分支。
-5. CI 全部通过后自动部署；失败时不会覆盖线上 Production。
+5. CI 全部通过后自动部署 Quartz 与 Refine 两个 Production；失败时不会覆盖线上 Production。
 
-切换正式引擎时只修改 Vercel `SITE_ENGINE`：设为 `quartz` 或 `next`，然后在 GitHub Actions
-手动运行 `Deploy Vercel Production`，或推送新的 `main` commit。两种引擎继续读取同一份安全
-发布清单，目录组织无需改变。
+两个项目的 `SITE_ENGINE` 分别固定为 `quartz` 和 `next`。如需交换域名或用途，只需修改对应
+项目的 `SITE_ENGINE` 与站点 URL 环境变量，再在 GitHub Actions 手动运行
+`Deploy Vercel Production`。两种引擎继续读取同一份安全发布清单，目录组织无需改变。

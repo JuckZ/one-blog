@@ -20,9 +20,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Trigger the main-branch Vercel deploy hook
+      - name: Trigger the Quartz production deploy hook
         env:
-          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+          VERCEL_QUARTZ_DEPLOY_HOOK: ${{ secrets.VERCEL_QUARTZ_DEPLOY_HOOK }}
         run: |
-          test -n "$VERCEL_DEPLOY_HOOK"
-          curl --fail --show-error --silent --request POST "$VERCEL_DEPLOY_HOOK" >/dev/null
+          test -n "$VERCEL_QUARTZ_DEPLOY_HOOK"
+          curl --fail --show-error --silent --request POST "$VERCEL_QUARTZ_DEPLOY_HOOK" >/dev/null
+
+      - name: Trigger the Refine production deploy hook
+        env:
+          VERCEL_REFINE_DEPLOY_HOOK: ${{ secrets.VERCEL_REFINE_DEPLOY_HOOK }}
+        run: |
+          test -n "$VERCEL_REFINE_DEPLOY_HOOK"
+          curl --fail --show-error --silent --request POST "$VERCEL_REFINE_DEPLOY_HOOK" >/dev/null

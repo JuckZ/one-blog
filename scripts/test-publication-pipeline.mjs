@@ -30,7 +30,7 @@ function runPostprocess(locale, outputRoot) {
   return new Promise((resolve, reject) => {
     const child = spawn(
       process.execPath,
-      [postprocessScript, locale, outputRoot, "https://example.test"],
+      [postprocessScript, locale, outputRoot, "https://example.test", "https://refine.example.test"],
       { cwd: temporaryRoot, stdio: "inherit", shell: false },
     );
     child.once("error", reject);
@@ -141,6 +141,10 @@ try {
   assert.match(
     missingTranslationHtml,
     /href="\/en\?translation=missing&amp;from=chinese-only"[^>]*data-router-ignore/,
+  );
+  assert.match(
+    missingTranslationHtml,
+    /id="one-blog-peer-link" href="https:\/\/refine\.example\.test"[^>]*rel="friend noopener noreferrer"/,
   );
   const languageClient = await readFile(
     path.join(chineseOutputRoot, "static", "one-blog-i18n.js"),

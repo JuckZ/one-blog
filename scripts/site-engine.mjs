@@ -119,7 +119,12 @@ async function buildQuartz() {
         ],
         { cwd: quartzRoot },
       );
-      await postprocessQuartzLocale({ locale, outputRoot: localeOutputRoot, siteOrigin });
+      await postprocessQuartzLocale({
+        locale,
+        outputRoot: localeOutputRoot,
+        siteOrigin,
+        peerSiteUrl: process.env.NEXT_PUBLIC_PEER_SITE_URL,
+      });
     } finally {
       await rm(runtimeConfigPath, { force: true });
     }
