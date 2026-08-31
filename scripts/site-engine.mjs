@@ -83,6 +83,15 @@ async function buildQuartz() {
     baseUrlRoot = `${parsed.host}${parsed.pathname}`.replace(/\/$/, "");
     siteOrigin = parsed.origin;
   }
+  const configuredPeerSiteUrl = process.env.NEXT_PUBLIC_PEER_SITE_URL;
+  let peerSiteUrl;
+  if (configuredPeerSiteUrl) {
+    const parsedPeerSiteUrl = new URL(configuredPeerSiteUrl);
+    if (parsedPeerSiteUrl.protocol !== "https:" && parsedPeerSiteUrl.protocol !== "http:") {
+      throw new Error("NEXT_PUBLIC_PEER_SITE_URL must use http or https");
+    }
+    peerSiteUrl = parsedPeerSiteUrl.toString().replace(/\/$/, "");
+  }
 
   const outputRoot = path.join(projectRoot, ".quartz-output");
   await rm(outputRoot, { recursive: true, force: true });
@@ -104,6 +113,17 @@ async function buildQuartz() {
       )
       .replace(/^  locale: .*$/m, `  locale: ${requestedLocale}`)
       .replace(/^  baseUrl: .*$/m, `  baseUrl: ${localeBaseUrl}`);
+    const footerPeerLinks = /^      links:\r?\n        Refine site: .*$/m;
+    if (!footerPeerLinks.test(runtimeConfig)) {
+      throw new Error("Quartz footer peer-link placeholder is missing from quartz.config.yaml");
+    }
+    const footerPeerLabel = locale === "zh" ? "Refine 版" : "Refine site";
+    runtimeConfig = runtimeConfig.replace(
+      footerPeerLinks,
+      peerSiteUrl
+        ? `      links:\n        ${JSON.stringify(footerPeerLabel)}: ${JSON.stringify(peerSiteUrl)}`
+        : "      links: {}",
+    );
 
     await writeFile(runtimeConfigPath, runtimeConfig, "utf8");
     try {
@@ -123,7 +143,7 @@ async function buildQuartz() {
         locale,
         outputRoot: localeOutputRoot,
         siteOrigin,
-        peerSiteUrl: process.env.NEXT_PUBLIC_PEER_SITE_URL,
+        peerSiteUrl,
       });
     } finally {
       await rm(runtimeConfigPath, { force: true });

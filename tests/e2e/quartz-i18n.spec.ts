@@ -151,13 +151,22 @@ test.describe("Quartz bilingual publication", () => {
     await expectLocalizedInternalLinks(page, "zh");
   });
 
-  test("mobile friend and language controls remain visible, separate, and usable", async ({ page }) => {
+  test("mobile language control stays usable while the friend link remains in the footer", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/zh");
-    const friend = page.getByRole("link", { name: "Refine 版" });
+    const footer = page.locator("footer");
+    const friend = footer.getByRole("link", { name: "Refine 版" });
     const switcher = page.getByRole("navigation", { name: "切换语言" }).getByRole("link", { name: "English" });
     await expect(friend).toBeVisible();
     await expect(switcher).toBeVisible();
+    const initialSwitcherBox = await switcher.boundingBox();
+    expect(initialSwitcherBox).not.toBeNull();
+    expect(initialSwitcherBox!.x).toBeGreaterThanOrEqual(0);
+    expect(initialSwitcherBox!.y).toBeGreaterThanOrEqual(0);
+    expect(initialSwitcherBox!.x + initialSwitcherBox!.width).toBeLessThanOrEqual(390);
+    expect(initialSwitcherBox!.y + initialSwitcherBox!.height).toBeLessThanOrEqual(844);
+
+    await friend.scrollIntoViewIfNeeded();
     const [friendBox, switcherBox] = await Promise.all([friend.boundingBox(), switcher.boundingBox()]);
     expect(friendBox).not.toBeNull();
     expect(switcherBox).not.toBeNull();
@@ -178,11 +187,13 @@ test.describe("Quartz bilingual publication", () => {
 
   test("Quartz exposes the configured Refine site as a friend link", async ({ page }) => {
     await page.goto("/zh");
-    const friend = page.getByRole("link", { name: "Refine 版" });
+    const footer = page.locator("footer");
+    const friend = footer.getByRole("link", { name: "Refine 版" });
     await expect(friend).toBeVisible();
     await expect(friend).toHaveAttribute("href", process.env.NEXT_PUBLIC_PEER_SITE_URL!);
     await expect(friend).toHaveAttribute("rel", "friend noopener noreferrer");
     await expect(friend).toHaveAttribute("target", "_blank");
+    await expect(page.locator("#one-blog-language-switcher #one-blog-peer-link")).toHaveCount(0);
   });
 
   test("robots, sitemap, canonical and hreflang cover both Quartz locales", async ({ page, request, baseURL }) => {

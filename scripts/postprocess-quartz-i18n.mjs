@@ -46,6 +46,18 @@ function localizeRelativeAttributes(html, locale, pathname) {
   });
 }
 
+function decorateFooterPeerLink(html, peerSiteUrl) {
+  if (!peerSiteUrl) return html;
+  const href = `href="${escapeHtml(peerSiteUrl)}"`;
+  return html.replace(/<footer\b[\s\S]*?<\/footer>/, (footer) => {
+    if (!footer.includes(href)) return footer;
+    return footer.replace(
+      href,
+      `id="one-blog-peer-link" ${href} target="_blank" rel="friend noopener noreferrer" data-router-ignore`,
+    );
+  });
+}
+
 async function walkHtmlFiles(directory) {
   const files = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -163,18 +175,14 @@ function createClientScript(alternates, translationKeys) {
 }
 
 const switcherCss = `
-#one-blog-site-controls {
+#one-blog-language-switcher {
   position: fixed;
   top: 0.75rem;
   right: 0.75rem;
   z-index: 1000;
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
-#one-blog-site-controls nav { margin: 0; }
-#one-blog-site-controls a {
+#one-blog-language-switcher a {
   display: inline-flex;
   align-items: center;
   min-height: 2rem;
@@ -189,10 +197,11 @@ const switcherCss = `
   backdrop-filter: blur(8px);
   box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
 }
-#one-blog-site-controls a:hover {
+#one-blog-language-switcher a:hover {
   color: var(--secondary);
   border-color: var(--secondary);
 }
+#one-blog-peer-link { font-weight: 600; }
 #one-blog-translation-notice {
   position: fixed;
   top: 0.75rem;
@@ -210,12 +219,9 @@ const switcherCss = `
   backdrop-filter: blur(8px);
 }
 @media (max-width: 800px) {
-  #one-blog-site-controls {
+  #one-blog-language-switcher {
     top: auto;
     bottom: 0.75rem;
-    max-width: calc(100vw - 1.5rem);
-    flex-wrap: wrap;
-    justify-content: flex-end;
   }
   #one-blog-translation-notice { max-width: calc(100vw - 1.5rem); }
 }
@@ -248,11 +254,7 @@ export async function postprocessQuartzLocale({ locale, outputRoot, siteOrigin, 
       : `/${targetLocale}`;
     const targetHref = alternateUrls[targetLocale] ?? missingTranslationHref;
     const navLabel = locale === "zh" ? "切换语言" : "Switch language";
-    const peerLabel = locale === "zh" ? "Refine 版" : "Refine site";
-    const peerLink = peerSiteUrl
-      ? `<a id="one-blog-peer-link" href="${escapeHtml(peerSiteUrl)}" target="_blank" rel="friend noopener noreferrer" data-router-ignore>${peerLabel}</a>`
-      : "";
-    const nav = `<div id="one-blog-site-controls">${peerLink}<nav id="one-blog-language-switcher" aria-label="${navLabel}"><a href="${escapeHtml(targetHref)}" hreflang="${targetLocale === "zh" ? "zh-CN" : "en-US"}" data-one-blog-lang="${targetLocale}" data-router-ignore>${targetLabel}</a></nav></div>`;
+    const nav = `<nav id="one-blog-language-switcher" aria-label="${navLabel}"><a href="${escapeHtml(targetHref)}" hreflang="${targetLocale === "zh" ? "zh-CN" : "en-US"}" data-one-blog-lang="${targetLocale}" data-router-ignore>${targetLabel}</a></nav>`;
 
     const headLinks = [`<link rel="stylesheet" href="/${locale}/static/one-blog-i18n.css" data-persist="true"/>`];
     if (post && siteOrigin) {
@@ -267,6 +269,7 @@ export async function postprocessQuartzLocale({ locale, outputRoot, siteOrigin, 
     let html = await readFile(htmlPath, "utf8");
     html = html.replaceAll(FALLBACK_LINK_ORIGIN, "");
     html = localizeRelativeAttributes(html, locale, pathname);
+    html = decorateFooterPeerLink(html, peerSiteUrl);
     html = html.replace(
       /fetch\("[^"]*static\/contentIndex\.json"\)/g,
       `fetch("/${locale}/static/contentIndex.json")`,

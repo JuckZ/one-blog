@@ -107,7 +107,8 @@ Quartz 模式先生成静态 Quartz 站点，再由一个很薄的 Next.js 适�
 或 Output Directory。
 
 正式发布使用两个绑定同一 GitHub 仓库的 Vercel 项目。两者都保留 Framework Preset 为
-Next.js、Build Command 为 `npm run build`，并通过 `NEXT_PUBLIC_PEER_SITE_URL` 互相显示为友链。
+Next.js、Build Command 为 `npm run build`，并通过 `NEXT_PUBLIC_PEER_SITE_URL` 在各自的 footer
+中互相显示为友链。Quartz 使用官方 Footer 插件；Next + Refine 公共博客使用共享的自定义 Footer 组件。
 
 Quartz 项目的 Production 环境：
 

@@ -51,9 +51,9 @@ export default function PostPage({ params }: { params: { locale: string; slug: s
     ?? `/${targetLocale}?translation=missing&from=${encodeURIComponent(post.translationKey ?? post.slug)}`;
 
   return (
-    <div className="min-h-screen bg-slate-50" lang={post.htmlLang}>
+    <>
       <PublicHeader locale={post.lang} alternateHref={alternateHref} />
-      <main className="mx-auto max-w-3xl px-5 py-14">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-14">
         <Link href={`/${post.lang}/posts`} className="text-sm font-semibold text-blue-700 hover:text-blue-900">← {dictionary.backToPosts}</Link>
         <article className="mt-8 rounded-3xl border border-slate-200 bg-white p-7 shadow-sm sm:p-12">
           <header className="mb-10 border-b border-slate-200 pb-8">
@@ -64,6 +64,6 @@ export default function PostPage({ params }: { params: { locale: string; slug: s
           <MarkdownContent content={post.content} />
         </article>
       </main>
-    </div>
+    </>
   );
 }

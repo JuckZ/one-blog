@@ -32,9 +32,9 @@ export default function LocaleHome({
   const missingTranslation = searchParams?.translation === "missing";
 
   return (
-    <div className="min-h-screen bg-slate-50" lang={localeConfig[params.locale].htmlLang}>
+    <>
       <PublicHeader locale={params.locale} alternateHref={`/${targetLocale}`} />
-      <main className="mx-auto max-w-4xl px-5 py-20">
+      <main className="mx-auto w-full max-w-4xl flex-1 px-5 py-20">
         {missingTranslation ? (
           <p role="status" className="mb-8 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
             {dictionary.missingTranslation}
@@ -50,6 +50,6 @@ export default function LocaleHome({
         </div>
         <p className="mt-16 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">{dictionary.publicationNote}</p>
       </main>
-    </div>
+    </>
   );
 }

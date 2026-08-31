@@ -11,7 +11,7 @@ Both engines publish only notes with a strict YAML boolean `publish: true`. See
 CI builds both engines and runs the bilingual Quartz Playwright regression suite. A successful
 `main` build triggers two permanent Vercel projects: one uses `SITE_ENGINE=quartz`, the other uses
 `SITE_ENGINE=next`. Each project sets `NEXT_PUBLIC_PEER_SITE_URL` to the other deployment so the
-two presentations of the same public vault are exposed as mutual friend links.
+two presentations of the same public vault are exposed as mutual friend links in their footers.
 
 ## TODO
 

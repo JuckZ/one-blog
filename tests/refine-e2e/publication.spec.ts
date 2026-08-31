@@ -33,29 +33,31 @@ test.describe("Next and Refine bilingual publication", () => {
     const canonical = page.locator('link[rel="canonical"]');
     await expect(canonical).toHaveAttribute("href", `${test.info().project.use.baseURL}/zh/posts/chocolatey`);
 
-    const friend = page.getByRole("link", { name: "Quartz 版" });
+    const footer = page.getByRole("contentinfo");
+    const friend = footer.getByRole("link", { name: "Quartz 版" });
     await expect(friend).toHaveAttribute("href", process.env.NEXT_PUBLIC_PEER_SITE_URL!);
     await expect(friend).toHaveAttribute("rel", "friend noopener noreferrer");
     await expect(friend).toHaveAttribute("target", "_blank");
 
     const language = page.getByRole("link", { name: "切换语言" });
     await expect(language).toHaveAttribute("href", "/en?translation=missing&from=chocolatey");
+    await expect(page.locator("header").getByRole("link", { name: "Quartz 版" })).toHaveCount(0);
 
     await page.setViewportSize({ width: 390, height: 844 });
-    const [friendBox, languageBox] = await Promise.all([friend.boundingBox(), language.boundingBox()]);
-    expect(friendBox).not.toBeNull();
+    const languageBox = await language.boundingBox();
     expect(languageBox).not.toBeNull();
-    for (const box of [friendBox!, languageBox!]) {
-      expect(box.x).toBeGreaterThanOrEqual(0);
-      expect(box.y).toBeGreaterThanOrEqual(0);
-      expect(box.x + box.width).toBeLessThanOrEqual(390);
-      expect(box.y + box.height).toBeLessThanOrEqual(844);
-    }
-    const overlapWidth = Math.min(friendBox!.x + friendBox!.width, languageBox!.x + languageBox!.width)
-      - Math.max(friendBox!.x, languageBox!.x);
-    const overlapHeight = Math.min(friendBox!.y + friendBox!.height, languageBox!.y + languageBox!.height)
-      - Math.max(friendBox!.y, languageBox!.y);
-    expect(overlapWidth > 0 && overlapHeight > 0).toBe(false);
+    expect(languageBox!.x).toBeGreaterThanOrEqual(0);
+    expect(languageBox!.y).toBeGreaterThanOrEqual(0);
+    expect(languageBox!.x + languageBox!.width).toBeLessThanOrEqual(390);
+    expect(languageBox!.y + languageBox!.height).toBeLessThanOrEqual(844);
+
+    await friend.scrollIntoViewIfNeeded();
+    const friendBox = await friend.boundingBox();
+    expect(friendBox).not.toBeNull();
+    expect(friendBox!.x).toBeGreaterThanOrEqual(0);
+    expect(friendBox!.y).toBeGreaterThanOrEqual(0);
+    expect(friendBox!.x + friendBox!.width).toBeLessThanOrEqual(390);
+    expect(friendBox!.y + friendBox!.height).toBeLessThanOrEqual(844);
 
     await language.click();
     await expect(page).toHaveURL(/\/en\?translation=missing&from=chocolatey$/);

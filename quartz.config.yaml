@@ -232,8 +232,7 @@ plugins:
     enabled: true
     options:
       links:
-        GitHub: https://github.com/jackyzha0/quartz
-        Discord Community: https://discord.gg/cRFFHYye7t
+        Refine site: https://one-blog-refine.vercel.app
     layout:
       position: footer
       priority: 50

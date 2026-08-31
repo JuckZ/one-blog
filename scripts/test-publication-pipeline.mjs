@@ -131,7 +131,7 @@ try {
   await mkdir(path.join(chineseOutputRoot, "projects"), { recursive: true });
   await writeFile(
     path.join(chineseOutputRoot, "projects", "chinese-only.html"),
-    "<!doctype html><html><head></head><body><main>仅中文</main></body></html>",
+    "<!doctype html><html><head></head><body><main>仅中文</main><footer><ul><li><a href=\"https://refine.example.test\">Refine 版</a></li></ul></footer></body></html>",
   );
   await runPostprocess("zh", chineseOutputRoot);
   const missingTranslationHtml = await readFile(
@@ -144,8 +144,13 @@ try {
   );
   assert.match(
     missingTranslationHtml,
-    /id="one-blog-peer-link" href="https:\/\/refine\.example\.test"[^>]*rel="friend noopener noreferrer"/,
+    /<footer>[\s\S]*id="one-blog-peer-link" href="https:\/\/refine\.example\.test"[^>]*rel="friend noopener noreferrer"[\s\S]*<\/footer>/,
   );
+  const languageNavigation = missingTranslationHtml.match(
+    /<nav id="one-blog-language-switcher"[\s\S]*?<\/nav>/,
+  )?.[0];
+  assert.ok(languageNavigation);
+  assert.doesNotMatch(languageNavigation, /one-blog-peer-link/);
   const languageClient = await readFile(
     path.join(chineseOutputRoot, "static", "one-blog-i18n.js"),
     "utf8",

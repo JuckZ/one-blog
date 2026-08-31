@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
-import { isLocale, locales } from "@/i18n";
+import { PublicFooter } from "@/components/public-footer";
+import { isLocale, localeConfig, locales } from "@/i18n";
 
 export const dynamicParams = false;
 
@@ -13,5 +14,10 @@ export default function LocaleLayout({
   params,
 }: Readonly<{ children: React.ReactNode; params: { locale: string } }>) {
   if (!isLocale(params.locale)) notFound();
-  return children;
+  return (
+    <div className="flex min-h-screen flex-col bg-slate-50" lang={localeConfig[params.locale].htmlLang}>
+      {children}
+      <PublicFooter locale={params.locale} />
+    </div>
+  );
 }
