@@ -132,9 +132,10 @@ npm run vercel:preview:prepare
 npx vercel deploy --temporary --prebuilt --yes --env SITE_ENGINE=quartz
 ```
 
-`posts` 和 `quartz-engine` 都以 HTTPS 子模块获取，GitHub Actions 与 Vercel 可以复现构建。
-站点只把 `.quartz-content/` 和 `src/generated/published-content.json` 中经过筛选的公开投影写入
-最终输出；Vercel CLI 源码上传还会通过 `.vercelignore` 排除整个原始 vault。
+`quartz-engine` 以公开 HTTPS 子模块获取。私有 `posts` 子模块设置为默认不递归拉取：GitHub
+Actions 使用仅对 `one-hub` 有只读权限的 `POSTS_DEPLOY_KEY`，按 one-blog 记录的精确 commit
+检出并校验发布投影；Vercel 不拉取原始 vault，只消费 `.quartz-content/` 和
+`src/generated/published-content.json`。Vercel CLI 源码上传还会通过 `.vercelignore` 排除 vault。
 
 ## 4. 发布前检查
 
@@ -167,14 +168,16 @@ CI 通过后，`.github/workflows/deploy-vercel.yml` 会触发 `main` 的永久 
 Vercel 自带的即时 Git 自动部署；`CI` 成功后由 GitHub Actions 调用仅绑定 `main` 的 Vercel
 Deploy Hook，因此正式发布仍是单一路径：push -> CI -> Vercel Production。
 
-仓库只需配置一个 GitHub Actions Secret：
+仓库需配置两个最小权限 GitHub Actions Secrets：
 
 ```text
 VERCEL_DEPLOY_HOOK
+POSTS_DEPLOY_KEY
 ```
 
 Deploy Hook 由 Vercel 项目生成，只能触发该项目的 `main` 分支构建，不需要把个人 Vercel
-Access Token 交给 GitHub。Hook URL 不应写入仓库或日志。
+Access Token 交给 GitHub。`POSTS_DEPLOY_KEY` 是 `one-hub` 的只读 Deploy Key。两者都不应
+写入仓库或日志。
 
 Secret 只保存在 GitHub，不提交到仓库。
 

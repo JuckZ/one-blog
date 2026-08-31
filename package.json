@@ -63,7 +63,7 @@
     "typescript": "^5.9.2"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": "24.x"
   },
   "refine": {
     "projectId": "EYhSsq-qspR72-2SydKw"
