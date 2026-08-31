@@ -78,8 +78,15 @@ translationKey: quartz-i18n-design
 中英文页面分别位于 `/zh/**` 和 `/en/**`。语言按钮会保存 `one-blog-lang` 偏好，并通过
 `translationKey` 跳转当前文章的译文；访问 `/` 时优先使用已保存语言，首次访问才参考浏览器语言。
 如果目标文章没有当前语言译文，它不会进入当前语言图谱；正文中的跨语言降级会被明确标注。
-文章右上角的语言入口会回退到目标语言首页，并显示“译文尚未提供”的提示，不会偷偷打开另一
+语言切换器会回退到目标语言首页，并显示“译文尚未提供”的提示，不会偷偷打开另一
 语言的文章或复用上一语言的 Quartz 索引。
+
+Quartz 的 `configuration.locale` 负责官方组件文案和日期格式，但官方没有跨多个独立构建的
+现成语言切换组件。因此 One Blog 保留 URL、Cookie 和 `translationKey` 映射逻辑，把自定义的
+“中 / EN”分段切换器放进 Quartz 官方 toolbar，与 Search、Darkmode、Reader mode 同组。
+Next + Refine 的公开博客使用同一视觉模型；Refine 的 `i18nProvider`、`useSetLocale` 和
+`useGetLocale` 仍适合应用内部状态，但公开博客需要以 `/zh`、`/en` 路由为 SEO 和内容索引边界，
+所以切换动作继续使用真实链接并写入 `one-blog-lang` Cookie，而不是只修改客户端状态。
 
 ## 3. 双站点与站点引擎
 
@@ -175,8 +182,8 @@ npm run test:e2e
 4. 运行 Playwright 双语回归测试。
 
 回归范围包括两种引擎的语言协商、Cookie 优先级、缺失译文回退与提示，以及 Quartz 的语言偏好
-持久化、跨语言整页加载、内部链接语言前缀、英文 Search/Explorer/Graph/Backlinks 隔离、移动端
-按钮、robots/sitemap/canonical/hreflang。
+持久化、跨语言整页加载、内部链接语言前缀、英文 Search/Explorer/Graph/Backlinks 隔离、语言
+切换器的 toolbar/header 位置、移动端边界和选中态，以及 robots/sitemap/canonical/hreflang。
 
 CI 通过后，`.github/workflows/deploy-vercel.yml` 会分别触发 Quartz 和 Refine 的永久 Vercel
 Production 构建。为避免 Vercel Git 集成与 GitHub Actions 重复部署，`vercel.json` 已关闭

@@ -150,6 +150,9 @@ try {
     /<nav id="one-blog-language-switcher"[\s\S]*?<\/nav>/,
   )?.[0];
   assert.ok(languageNavigation);
+  assert.match(languageNavigation, /class="one-blog-language-shell"/);
+  assert.match(languageNavigation, /aria-current="page"[^>]*>中<\/span>/);
+  assert.match(languageNavigation, /aria-label="English"[^>]*>EN<\/a>/);
   assert.doesNotMatch(languageNavigation, /one-blog-peer-link/);
   const languageClient = await readFile(
     path.join(chineseOutputRoot, "static", "one-blog-i18n.js"),

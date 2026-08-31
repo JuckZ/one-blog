@@ -156,15 +156,26 @@ test.describe("Quartz bilingual publication", () => {
     await page.goto("/zh");
     const footer = page.locator("footer");
     const friend = footer.getByRole("link", { name: "Refine 版" });
-    const switcher = page.getByRole("navigation", { name: "切换语言" }).getByRole("link", { name: "English" });
+    const languageNavigation = page.getByRole("navigation", { name: "切换语言" });
+    const switcher = languageNavigation.getByRole("link", { name: "English" });
     await expect(friend).toBeVisible();
     await expect(switcher).toBeVisible();
+    await expect(languageNavigation.locator('[aria-current="page"]')).toHaveText("中");
+    await expect(switcher).toHaveText("EN");
+    await expect(page.locator(".left.sidebar .flex-component > #one-blog-language-switcher")).toHaveCount(1);
+    await expect(languageNavigation).toHaveCSS("position", "static");
     const initialSwitcherBox = await switcher.boundingBox();
+    const navigationBox = await languageNavigation.boundingBox();
     expect(initialSwitcherBox).not.toBeNull();
+    expect(navigationBox).not.toBeNull();
     expect(initialSwitcherBox!.x).toBeGreaterThanOrEqual(0);
     expect(initialSwitcherBox!.y).toBeGreaterThanOrEqual(0);
     expect(initialSwitcherBox!.x + initialSwitcherBox!.width).toBeLessThanOrEqual(390);
     expect(initialSwitcherBox!.y + initialSwitcherBox!.height).toBeLessThanOrEqual(844);
+    expect(navigationBox!.height).toBeGreaterThanOrEqual(40);
+    const siteTitleBox = await page.locator(".left.sidebar > .page-title").boundingBox();
+    expect(siteTitleBox).not.toBeNull();
+    expect(siteTitleBox!.height).toBeLessThanOrEqual(44);
 
     await friend.scrollIntoViewIfNeeded();
     const [friendBox, switcherBox] = await Promise.all([friend.boundingBox(), switcher.boundingBox()]);

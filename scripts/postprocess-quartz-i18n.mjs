@@ -58,6 +58,20 @@ function decorateFooterPeerLink(html, peerSiteUrl) {
   });
 }
 
+function injectLanguageSwitcher(html, navigation) {
+  const sidebarStart = html.indexOf('<div class="left sidebar">');
+  const toolbarStart = sidebarStart === -1
+    ? -1
+    : html.indexOf('<div class="flex-component"', sidebarStart);
+  const toolbarTagEnd = toolbarStart === -1 ? -1 : html.indexOf(">", toolbarStart);
+
+  if (toolbarTagEnd !== -1) {
+    return `${html.slice(0, toolbarTagEnd + 1)}${navigation}${html.slice(toolbarTagEnd + 1)}`;
+  }
+
+  return html.replace(/<body([^>]*)>/, `<body$1>${navigation}`);
+}
+
 async function walkHtmlFiles(directory) {
   const files = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -104,6 +118,8 @@ function createClientScript(alternates, translationKeys) {
   const alternates = ${serialized};
   const translationKeys = ${serializedKeys};
   const labels = { zh: "中文", en: "English" };
+  const shortLabels = { zh: "中", en: "EN" };
+  const currentLabels = { zh: "当前语言", en: "Current language" };
   const cookieName = "one-blog-lang";
   const normalize = (value) => {
     const result = decodeURI(value).replace(/\\/+$/, "");
@@ -116,6 +132,7 @@ function createClientScript(alternates, translationKeys) {
   };
   const update = () => {
     const link = document.querySelector("#one-blog-language-switcher a");
+    const current = document.querySelector("#one-blog-language-switcher [aria-current='page']");
     if (!link) return;
     const pathname = normalize(window.location.pathname);
     const currentLocale = pathname.split("/").filter(Boolean)[0] === "en" ? "en" : "zh";
@@ -129,7 +146,14 @@ function createClientScript(alternates, translationKeys) {
     link.setAttribute("hreflang", targetLocale === "zh" ? "zh-CN" : "en-US");
     link.setAttribute("data-one-blog-lang", targetLocale);
     link.setAttribute("data-router-ignore", "");
-    link.textContent = labels[targetLocale];
+    link.setAttribute("aria-label", labels[targetLocale]);
+    link.setAttribute("title", labels[targetLocale]);
+    link.textContent = shortLabels[targetLocale];
+    if (current) {
+      current.textContent = shortLabels[currentLocale];
+      current.setAttribute("aria-label", currentLabels[currentLocale] + ": " + labels[currentLocale]);
+      current.setAttribute("title", labels[currentLocale]);
+    }
   };
   const showMissingTranslationNotice = () => {
     const parameters = new URLSearchParams(window.location.search);
@@ -176,30 +200,63 @@ function createClientScript(alternates, translationKeys) {
 
 const switcherCss = `
 #one-blog-language-switcher {
-  position: fixed;
-  top: 0.75rem;
-  right: 0.75rem;
-  z-index: 1000;
+  order: 100;
+  flex: 0 0 auto;
+  align-self: center;
   margin: 0;
 }
+#one-blog-language-switcher .one-blog-language-shell {
+  display: flex;
+  align-items: center;
+  height: 2.5rem;
+  box-sizing: border-box;
+  gap: 0.125rem;
+  padding: 0.25rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--lightgray) 56%, var(--light));
+  color: var(--darkgray);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07), inset 0 1px 0 color-mix(in srgb, var(--light) 75%, transparent);
+}
+#one-blog-language-switcher .one-blog-language-icon {
+  width: 1rem;
+  height: 1rem;
+  margin: 0 0.2rem 0 0.25rem;
+  color: var(--gray);
+  stroke: currentColor;
+}
+#one-blog-language-switcher [aria-current="page"],
 #one-blog-language-switcher a {
   display: inline-flex;
   align-items: center;
-  min-height: 2rem;
-  padding: 0.25rem 0.75rem;
-  border: 1px solid var(--lightgray);
+  justify-content: center;
+  min-width: 2.15rem;
+  height: 2rem;
+  box-sizing: border-box;
+  padding: 0 0.45rem;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--light) 90%, transparent);
-  color: var(--darkgray);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 600;
+  line-height: 1;
+}
+#one-blog-language-switcher [aria-current="page"] {
+  background: var(--dark);
+  color: var(--light);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14);
+}
+#one-blog-language-switcher a {
+  color: var(--darkgray);
   text-decoration: none;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
+  transition: color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
 }
 #one-blog-language-switcher a:hover {
   color: var(--secondary);
-  border-color: var(--secondary);
+  background: var(--light);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+#one-blog-language-switcher a:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
 }
 #one-blog-peer-link { font-weight: 600; }
 #one-blog-translation-notice {
@@ -219,10 +276,19 @@ const switcherCss = `
   backdrop-filter: blur(8px);
 }
 @media (max-width: 800px) {
-  #one-blog-language-switcher {
-    top: auto;
-    bottom: 0.75rem;
+  .left.sidebar > .page-title,
+  .left.sidebar > .page-title > a {
+    white-space: nowrap;
   }
+  .left.sidebar .search-button {
+    width: 2.25rem;
+    min-width: 2.25rem;
+    padding-left: 0;
+    padding-right: 0;
+    justify-content: center;
+  }
+  .left.sidebar .search-button > p { display: none; }
+  #one-blog-language-switcher .one-blog-language-icon { display: none; }
   #one-blog-translation-notice { max-width: calc(100vw - 1.5rem); }
 }
 `;
@@ -236,6 +302,9 @@ export async function postprocessQuartzLocale({ locale, outputRoot, siteOrigin, 
   const postsByQuartzUrl = new Map(posts.map((post) => [normalizePathname(post.quartzUrl), post]));
   const targetLocale = locale === "zh" ? "en" : "zh";
   const targetLabel = targetLocale === "zh" ? "中文" : "English";
+  const targetShortLabel = targetLocale === "zh" ? "中" : "EN";
+  const currentLabel = locale === "zh" ? "中文" : "English";
+  const currentShortLabel = locale === "zh" ? "中" : "EN";
   const staticRoot = path.join(outputRoot, "static");
   await mkdir(staticRoot, { recursive: true });
   await writeFile(
@@ -254,7 +323,9 @@ export async function postprocessQuartzLocale({ locale, outputRoot, siteOrigin, 
       : `/${targetLocale}`;
     const targetHref = alternateUrls[targetLocale] ?? missingTranslationHref;
     const navLabel = locale === "zh" ? "切换语言" : "Switch language";
-    const nav = `<nav id="one-blog-language-switcher" aria-label="${navLabel}"><a href="${escapeHtml(targetHref)}" hreflang="${targetLocale === "zh" ? "zh-CN" : "en-US"}" data-one-blog-lang="${targetLocale}" data-router-ignore>${targetLabel}</a></nav>`;
+    const currentAriaLabel = locale === "zh" ? `当前语言: ${currentLabel}` : `Current language: ${currentLabel}`;
+    const globe = '<svg class="one-blog-language-icon" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><path d="M3.6 9h16.8M3.6 15h16.8M12 3c2.2 2.45 3.3 5.45 3.3 9S14.2 18.55 12 21c-2.2-2.45-3.3-5.45-3.3-9S9.8 5.45 12 3Z"></path></svg>';
+    const nav = `<nav id="one-blog-language-switcher" aria-label="${navLabel}"><span class="one-blog-language-shell">${globe}<span aria-current="page" aria-label="${currentAriaLabel}" title="${currentLabel}">${currentShortLabel}</span><a href="${escapeHtml(targetHref)}" hreflang="${targetLocale === "zh" ? "zh-CN" : "en-US"}" aria-label="${targetLabel}" title="${targetLabel}" data-one-blog-lang="${targetLocale}" data-router-ignore>${targetShortLabel}</a></span></nav>`;
 
     const headLinks = [`<link rel="stylesheet" href="/${locale}/static/one-blog-i18n.css" data-persist="true"/>`];
     if (post && siteOrigin) {
@@ -275,7 +346,7 @@ export async function postprocessQuartzLocale({ locale, outputRoot, siteOrigin, 
       `fetch("/${locale}/static/contentIndex.json")`,
     );
     html = html.replace("</head>", `${headLinks.join("")}</head>`);
-    html = html.replace(/<body([^>]*)>/, `<body$1>${nav}`);
+    html = injectLanguageSwitcher(html, nav);
     html = html.replace(
       "</html>",
       `<script src="/${locale}/static/one-blog-i18n.js" type="application/javascript" data-persist="true"></script></html>`,

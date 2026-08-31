@@ -39,17 +39,24 @@ test.describe("Next and Refine bilingual publication", () => {
     await expect(friend).toHaveAttribute("rel", "friend noopener noreferrer");
     await expect(friend).toHaveAttribute("target", "_blank");
 
-    const language = page.getByRole("link", { name: "切换语言" });
+    const languageNavigation = page.getByRole("navigation", { name: "切换语言" });
+    const language = languageNavigation.getByRole("link", { name: "English" });
+    await expect(languageNavigation.locator('[aria-current="page"]')).toHaveText("中");
+    await expect(language).toHaveText("EN");
     await expect(language).toHaveAttribute("href", "/en?translation=missing&from=chocolatey");
     await expect(page.locator("header").getByRole("link", { name: "Quartz 版" })).toHaveCount(0);
 
     await page.setViewportSize({ width: 390, height: 844 });
     const languageBox = await language.boundingBox();
+    const navigationBox = await languageNavigation.boundingBox();
     expect(languageBox).not.toBeNull();
+    expect(navigationBox).not.toBeNull();
     expect(languageBox!.x).toBeGreaterThanOrEqual(0);
     expect(languageBox!.y).toBeGreaterThanOrEqual(0);
     expect(languageBox!.x + languageBox!.width).toBeLessThanOrEqual(390);
     expect(languageBox!.y + languageBox!.height).toBeLessThanOrEqual(844);
+    expect(navigationBox!.width).toBeGreaterThan(100);
+    expect(navigationBox!.height).toBeGreaterThanOrEqual(40);
 
     await friend.scrollIntoViewIfNeeded();
     const friendBox = await friend.boundingBox();

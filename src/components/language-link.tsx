@@ -7,6 +7,7 @@ interface LanguageLinkProps {
   hrefLang: string;
   locale: Locale;
   ariaLabel: string;
+  title?: string;
   className?: string;
   children: React.ReactNode;
 }
@@ -16,6 +17,7 @@ export function LanguageLink({
   hrefLang,
   locale,
   ariaLabel,
+  title,
   className,
   children,
 }: LanguageLinkProps) {
@@ -33,6 +35,7 @@ export function LanguageLink({
       href={href}
       hrefLang={hrefLang}
       aria-label={ariaLabel}
+      title={title}
       className={className}
       onClick={rememberLanguage}
     >

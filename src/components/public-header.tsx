@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { LanguageLink } from "@/components/language-link";
-import { getDictionary, localeConfig, type Locale } from "@/i18n";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { getDictionary, type Locale } from "@/i18n";
 
 interface PublicHeaderProps {
   locale: Locale;
@@ -10,28 +10,21 @@ interface PublicHeaderProps {
 
 export function PublicHeader({ locale, alternateHref }: PublicHeaderProps) {
   const dictionary = getDictionary(locale);
-  const targetLocale: Locale = locale === "zh" ? "en" : "zh";
 
   return (
-    <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/85 shadow-[0_1px_0_rgba(15,23,42,0.02)] backdrop-blur-xl">
       <div className="mx-auto flex max-w-4xl items-center justify-between px-5 py-4">
         <Link href={`/${locale}`} className="text-lg font-bold tracking-tight text-slate-950">
           {dictionary.siteName}
         </Link>
-        <nav className="flex items-center gap-5 text-sm" aria-label={dictionary.siteName}>
-          <Link href={`/${locale}/posts`} className="text-slate-700 hover:text-slate-950">
-            {dictionary.posts}
-          </Link>
-          <LanguageLink
-            href={alternateHref ?? `/${targetLocale}`}
-            hrefLang={localeConfig[targetLocale].htmlLang}
-            locale={targetLocale}
-            ariaLabel={dictionary.switchLanguage}
-            className="rounded-full border border-slate-300 px-3 py-1.5 font-medium text-slate-700 hover:border-slate-500 hover:text-slate-950"
-          >
-            {localeConfig[targetLocale].label}
-          </LanguageLink>
-        </nav>
+        <div className="flex items-center gap-3 sm:gap-5">
+          <nav className="text-sm" aria-label={dictionary.primaryNavigation}>
+            <Link href={`/${locale}/posts`} className="font-medium text-slate-600 transition hover:text-slate-950">
+              {dictionary.posts}
+            </Link>
+          </nav>
+          <LanguageSwitcher locale={locale} alternateHref={alternateHref} />
+        </div>
       </div>
     </header>
   );
