@@ -27,6 +27,7 @@ export const dictionaries = {
     backToPosts: "返回文章列表",
     switchLanguage: "切换语言",
     peerSite: "Quartz 版",
+    missingTranslation: "这篇文章尚未提供中文译文，已返回中文首页。",
     publicationNote: "只有 frontmatter 中严格设置 publish: true 的笔记才会公开。",
   },
   en: {
@@ -42,6 +43,7 @@ export const dictionaries = {
     backToPosts: "Back to posts",
     switchLanguage: "Switch language",
     peerSite: "Quartz site",
+    missingTranslation: "This article is not available in English yet. You have been returned to the English home page.",
     publicationNote: "Only notes with a strict publish: true frontmatter value are public.",
   },
 } as const;

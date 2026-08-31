@@ -52,6 +52,16 @@ jobs:
       - name: Build Next and Refine engine
         run: npm run build:next
         env:
+          NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3110
+          NEXT_PUBLIC_PEER_SITE_URL: https://quartz.example.test
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Next and Refine browser regression tests
+        run: npm run test:e2e:refine
+        env:
+          CI: "true"
           NEXT_PUBLIC_PEER_SITE_URL: https://quartz.example.test
 
       - name: Build Quartz engine for regression tests
@@ -61,9 +71,6 @@ jobs:
           NEXT_PUBLIC_PEER_SITE_URL: https://refine.example.test
           QUARTZ_BASE_URL: http://127.0.0.1:3100
           QUARTZ_LOCALES: zh-CN,en-US
-
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
 
       - name: Run Quartz browser regression tests
         run: npm run test:e2e:run

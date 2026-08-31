@@ -157,6 +157,7 @@ npm run content:test
 npm run content:verify
 npm run build:quartz
 npm run build:next
+npm run test:e2e:refine
 npm run test:e2e
 ```
 
@@ -172,8 +173,9 @@ npm run test:e2e
 3. 分别构建 Next + Refine 与 Quartz；
 4. 运行 Playwright 双语回归测试。
 
-回归范围包括语言协商、Cookie 优先级、语言偏好持久化、跨语言整页加载、内部链接语言前缀、
-英文 Search/Explorer/Graph/Backlinks 隔离、移动端按钮以及 robots/sitemap/canonical/hreflang。
+回归范围包括两种引擎的语言协商、Cookie 优先级、缺失译文回退与提示，以及 Quartz 的语言偏好
+持久化、跨语言整页加载、内部链接语言前缀、英文 Search/Explorer/Graph/Backlinks 隔离、移动端
+按钮、robots/sitemap/canonical/hreflang。
 
 CI 通过后，`.github/workflows/deploy-vercel.yml` 会分别触发 Quartz 和 Refine 的永久 Vercel
 Production 构建。为避免 Vercel Git 集成与 GitHub Actions 重复部署，`vercel.json` 已关闭

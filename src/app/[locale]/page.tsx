@@ -19,15 +19,27 @@ export function generateMetadata({ params }: { params: { locale: string } }): Me
   };
 }
 
-export default function LocaleHome({ params }: { params: { locale: string } }) {
+export default function LocaleHome({
+  params,
+  searchParams,
+}: {
+  params: { locale: string };
+  searchParams?: { translation?: string | string[]; from?: string | string[] };
+}) {
   if (!isLocale(params.locale)) notFound();
   const dictionary = getDictionary(params.locale);
   const targetLocale = params.locale === "zh" ? "en" : "zh";
+  const missingTranslation = searchParams?.translation === "missing";
 
   return (
     <div className="min-h-screen bg-slate-50" lang={localeConfig[params.locale].htmlLang}>
       <PublicHeader locale={params.locale} alternateHref={`/${targetLocale}`} />
       <main className="mx-auto max-w-4xl px-5 py-20">
+        {missingTranslation ? (
+          <p role="status" className="mb-8 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+            {dictionary.missingTranslation}
+          </p>
+        ) : null}
         <div className="max-w-2xl">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-700">One Blog</p>
           <h1 className="mt-5 text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">{dictionary.homeTitle}</h1>

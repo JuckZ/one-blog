@@ -47,10 +47,12 @@ export default function PostPage({ params }: { params: { locale: string; slug: s
   const targetLocale: Locale = post.lang === "zh" ? "en" : "zh";
   const translation = getTranslation(post, targetLocale);
   const date = new Intl.DateTimeFormat(localeConfig[post.lang].dateLocale, { dateStyle: "long" }).format(new Date(post.date));
+  const alternateHref = translation?.url
+    ?? `/${targetLocale}?translation=missing&from=${encodeURIComponent(post.translationKey ?? post.slug)}`;
 
   return (
     <div className="min-h-screen bg-slate-50" lang={post.htmlLang}>
-      <PublicHeader locale={post.lang} alternateHref={translation?.url ?? `/${targetLocale}/posts`} />
+      <PublicHeader locale={post.lang} alternateHref={alternateHref} />
       <main className="mx-auto max-w-3xl px-5 py-14">
         <Link href={`/${post.lang}/posts`} className="text-sm font-semibold text-blue-700 hover:text-blue-900">← {dictionary.backToPosts}</Link>
         <article className="mt-8 rounded-3xl border border-slate-200 bg-white p-7 shadow-sm sm:p-12">

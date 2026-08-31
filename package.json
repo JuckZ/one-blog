@@ -16,6 +16,7 @@
     "pretest:e2e": "cross-env QUARTZ_BASE_URL=http://127.0.0.1:3100 NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3100 npm run build:quartz",
     "test": "npm run content:test",
     "test:e2e": "playwright test",
+    "test:e2e:refine": "playwright test --config=playwright.refine.config.ts",
     "test:e2e:run": "playwright test",
     "refine": "refine",
     "start": "next start",
