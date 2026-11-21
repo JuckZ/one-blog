@@ -1,6 +1,6 @@
 ---
 title: One Blog
-description: 记录软件工程、AI 工具、个人知识管理与产品实践的个人数字花园。
+description: One Blog 是我的个人数字花园，持续更新软件工程、AI 工具、Obsidian 知识管理和产品实践的公开笔记。
 date: 2026-08-30
 publish: true
 lang: zh-CN
