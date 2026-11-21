@@ -10,6 +10,22 @@ async function navigateRoot(page: Page, expectedLocale: "zh" | "en") {
 }
 
 test.describe("Next and Refine bilingual publication", () => {
+  test("the Refine admin redirects anonymous visitors and displays a mocked login error", async ({ page }) => {
+    await page.route(/\/auth\/v1\/token(?:\?|$)/, (route) =>
+      route.fulfill({
+        status: 400,
+        headers: { "access-control-allow-origin": "*" },
+        json: { code: "invalid_credentials", msg: "Invalid login credentials" },
+      }),
+    );
+    await page.goto("/blog-posts");
+    await expect(page).toHaveURL(/\/login(?:\?.*)?$/);
+    await page.getByRole("textbox", { name: /email/i }).fill("publish-test@example.invalid");
+    await page.locator('input[type="password"]').fill("mock-password");
+    await page.getByRole("button", { name: /sign in/i }).click();
+    await expect(page.getByText("Invalid login credentials")).toBeVisible();
+  });
+
   test("root negotiates browser language and gives Cookie priority", async ({ browser, baseURL }) => {
     if (!baseURL) throw new Error("Playwright baseURL is required");
     const context = await browser.newContext({ baseURL, locale: "zh-CN" });
@@ -48,6 +64,24 @@ test.describe("Next and Refine bilingual publication", () => {
     await englishPosts.getByRole("link", { name: "All posts" }).click();
     await expect(page.getByRole("link", { name: "Quartz Chinese–English Switching Example" }))
       .toHaveAttribute("href", "/en/posts/quartz-i18n-example");
+  });
+
+  test("RSS serves both languages and keeps the default feed in Chinese", async ({ request }) => {
+    const [zh, en, defaultFeed] = await Promise.all([
+      request.get("/zh/rss.xml"),
+      request.get("/en/rss.xml"),
+      request.get("/rss.xml"),
+    ]);
+    for (const feed of [zh, en, defaultFeed]) {
+      await expect(feed).toBeOK();
+      expect(feed.headers()["content-type"]).toContain("application/rss+xml");
+    }
+    const [chineseXml, englishXml] = await Promise.all([zh.text(), en.text()]);
+    expect(chineseXml).toContain("<language>zh-CN</language>");
+    expect(chineseXml).toContain("<title>Chocolatey</title>");
+    expect(englishXml).toContain("<language>en-US</language>");
+    expect(englishXml).not.toContain("<title>Chocolatey</title>");
+    expect(await defaultFeed.text()).toBe(chineseXml);
   });
 
   test("Chinese-only Chocolatey falls back with a notice and never enters English posts", async ({ page }) => {

@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { readFile, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { spawn } from "node:child_process";
 
@@ -34,22 +35,24 @@ function run(command, args, options = {}) {
   });
 }
 
-async function prepareContent() {
-  await run(process.execPath, [path.join(projectRoot, "scripts", "prepare-published-content.mjs")]);
-}
-
-async function ensureQuartzDependencies() {
-  const quartzNodeModules = path.join(projectRoot, "quartz-engine", "node_modules");
-  if (existsSync(quartzNodeModules)) return;
-  const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+async function ensureQuartzDependencies(quartzRoot) {
+  const lock = await readFile(path.join(quartzRoot, "package-lock.json"));
+  const lockHash = createHash("sha256").update(lock).digest("hex");
+  const installedLock = path.join(quartzRoot, "node_modules", ".one-blog-lock");
+  if (existsSync(installedLock) && await readFile(installedLock, "utf8") === lockHash) return;
   // Vercel installs with NODE_ENV=production, but Quartz keeps its build-time
   // compiler (esbuild) in devDependencies. Explicitly include those packages.
-  await run(npmCommand, ["ci", "--include=dev", "--prefix", "quartz-engine"]);
+  if (process.platform === "win32") {
+    await run("npm ci --include=dev", [], { cwd: quartzRoot, shell: true });
+  } else {
+    await run("npm", ["ci", "--include=dev"], { cwd: quartzRoot });
+  }
+  await writeFile(installedLock, lockHash, "utf8");
 }
 
 async function buildQuartz() {
-  await ensureQuartzDependencies();
   const quartzRoot = path.join(projectRoot, "quartz-engine");
+  await ensureQuartzDependencies(quartzRoot);
   const runtimeConfigPath = path.join(quartzRoot, "quartz.config.yaml");
   if (existsSync(runtimeConfigPath)) {
     throw new Error(`Refusing to overwrite Quartz runtime config: ${runtimeConfigPath}`);
@@ -162,7 +165,5 @@ async function runNext(nextAction) {
 }
 
 console.log(`Using site engine: ${engine}`);
-await prepareContent();
-
 if (engine === "quartz") await buildQuartz();
 await runNext(action);

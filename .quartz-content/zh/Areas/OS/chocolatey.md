@@ -1,25 +1,23 @@
 ---
 title: Chocolatey
-aliases: [Chocolatey]
 categories: []
 tags:
   - windows
   - package-manager
   - chocolatey
-sources: []
 authors:
   - Juck
 keywords:
-  - ''
+  - Windows 软件包管理
+  - Chocolatey GUI
 publish: true
 lang: zh-CN
 translationKey: chocolatey
-description: 在 Windows 上安装和使用 Chocolatey，并通过命令行或图形界面管理软件包。
+description: 在 Windows 上安装 Chocolatey，学习用 Chocolatey CLI 2.x 查找、安装、升级和卸载软件包，并了解 Chocolatey GUI。
 date: 2024-01-29
 banner: "Obsidian/attachments/banner/banner5.jpg"
 createTime: 2024-01-29 20:57:30
 lastUpdateTime: 2026-08-31 00:00:00
-cssclasses: []
 weight: 8
 ---
 

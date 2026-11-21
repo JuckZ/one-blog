@@ -11,17 +11,13 @@ import {
 } from "@refinedev/mui";
 
 export default function BlogPostShow() {
-  const { queryResult } = useShow({
+  const { result: record, query: { isLoading } } = useShow({
     meta: {
       select: "*, categories(id,title)",
     },
   });
 
-  const { data, isLoading } = queryResult;
-
-  const record = data?.data;
-
-  const { data: categoryData, isLoading: categoryIsLoading } = useOne({
+  const { result: category, query: { isLoading: categoryIsLoading } } = useOne({
     resource: "categories",
     id: record?.categories?.id || "",
     queryOptions: {
@@ -50,7 +46,7 @@ export default function BlogPostShow() {
         <Typography variant="body1" fontWeight="bold">
           {"Category"}
         </Typography>
-        {categoryIsLoading ? <>Loading...</> : <>{categoryData?.data?.title}</>}
+        {categoryIsLoading ? <>Loading...</> : <>{category?.title}</>}
 
         <Typography variant="body1" fontWeight="bold">
           {"Status"}

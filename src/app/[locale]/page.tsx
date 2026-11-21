@@ -8,33 +8,35 @@ import { getDictionary, isLocale, localeConfig } from "@/i18n";
 import { getPublishedPosts } from "@/lib/content";
 import { getBlogFeed, rssMediaType } from "@/lib/rss";
 
-export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
-  if (!isLocale(params.locale)) return {};
-  const dictionary = getDictionary(params.locale);
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isLocale(locale)) return {};
+  const dictionary = getDictionary(locale);
   return {
     title: dictionary.siteName,
     description: dictionary.siteDescription,
     alternates: {
-      canonical: `/${params.locale}`,
+      canonical: `/${locale}`,
       languages: { "zh-CN": "/zh", "en-US": "/en", "x-default": "/zh" },
-      types: { [rssMediaType]: [getBlogFeed(params.locale)] },
+      types: { [rssMediaType]: [getBlogFeed(locale)] },
     },
-    openGraph: { locale: localeConfig[params.locale].htmlLang.replace("-", "_") },
+    openGraph: { locale: localeConfig[locale].htmlLang.replace("-", "_") },
   };
 }
 
-export default function LocaleHome({
+export default async function LocaleHome({
   params,
   searchParams,
 }: {
-  params: { locale: string };
-  searchParams?: { translation?: string | string[]; from?: string | string[] };
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ translation?: string | string[]; from?: string | string[] }>;
 }) {
-  if (!isLocale(params.locale)) notFound();
-  const dictionary = getDictionary(params.locale);
-  const targetLocale = params.locale === "zh" ? "en" : "zh";
-  const missingTranslation = searchParams?.translation === "missing";
-  const posts = getPublishedPosts(params.locale);
+  const [{ locale }, { translation }] = await Promise.all([params, searchParams]);
+  if (!isLocale(locale)) notFound();
+  const dictionary = getDictionary(locale);
+  const targetLocale = locale === "zh" ? "en" : "zh";
+  const missingTranslation = translation === "missing";
+  const posts = getPublishedPosts(locale);
   const introduction = posts.find((post) => post.translationKey === "home");
   const recentPosts = posts
     .filter((post) => post !== introduction && post.translationKey !== "quartz-i18n-example")
@@ -44,7 +46,7 @@ export default function LocaleHome({
 
   return (
     <>
-      <PublicHeader locale={params.locale} alternateHref={`/${targetLocale}`} />
+      <PublicHeader locale={locale} alternateHref={`/${targetLocale}`} />
       <main className="mx-auto w-full max-w-4xl flex-1 px-5 pb-16 pt-8 sm:pt-12">
         {missingTranslation ? (
           <p role="status" className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
@@ -78,14 +80,14 @@ export default function LocaleHome({
               {hasRecentPosts ? dictionary.recentPosts : dictionary.startReading}
             </h2>
             <Link
-              href={`/${params.locale}/posts`}
+              href={`/${locale}/posts`}
               className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-teal-800 underline-offset-4 hover:underline"
             >
               {dictionary.allPosts}
               <span aria-hidden="true">→</span>
             </Link>
           </div>
-          <PostList posts={readingList} locale={params.locale} headingLevel="h3" />
+          <PostList posts={readingList} locale={locale} headingLevel="h3" />
         </section>
       </main>
     </>

@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Check out site and public submodules
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
 
@@ -27,7 +27,7 @@ jobs:
         run: echo "sha=$(git rev-parse HEAD:posts)" >> "$GITHUB_OUTPUT"
 
       - name: Check out the pinned private vault with its read-only deploy key
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           repository: JuckZ/one-hub
           ref: ${{ steps.posts-revision.outputs.sha }}
@@ -35,13 +35,16 @@ jobs:
           ssh-key: ${{ secrets.POSTS_DEPLOY_KEY }}
 
       - name: Use Node.js 24
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: 24
           cache: yarn
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile --production=false
+
+      - name: Lint site code
+        run: npm run lint
 
       - name: Test publication rules
         run: npm run content:test
@@ -56,7 +59,7 @@ jobs:
           NEXT_PUBLIC_PEER_SITE_URL: https://quartz.example.test
 
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps --only-shell chromium
 
       - name: Run Next and Refine browser regression tests
         run: npm run test:e2e:refine
@@ -80,7 +83,7 @@ jobs:
 
       - name: Upload Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: playwright-report
           path: |

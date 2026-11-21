@@ -1,4 +1,4 @@
-import { copyFile, lstat, mkdir, readFile, readdir, realpath, rm, stat, writeFile } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readFile, readdir, realpath, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
@@ -75,14 +75,22 @@ function normalizeLocale(value, relativePath) {
   throw new Error(`Published note ${relativePath} has unsupported lang: ${value}`);
 }
 
-function normalizeDate(data, fallbackDate) {
-  const candidate = data.date ?? data.published ?? data.created;
-  if (candidate instanceof Date && !Number.isNaN(candidate.getTime())) return candidate.toISOString();
-  if (typeof candidate === "string" || typeof candidate === "number") {
-    const parsed = new Date(candidate);
-    if (!Number.isNaN(parsed.getTime())) return String(candidate);
+function normalizeDate(data, relativePath) {
+  const candidate = data.date ?? data.published ?? data.created ?? data.createTime;
+  let date;
+  if (candidate instanceof Date || typeof candidate === "number") {
+    date = new Date(candidate);
+  } else if (typeof candidate === "string") {
+    const value = candidate.trim().replace(" ", "T");
+    if (/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/i.test(value)) {
+      const hasLocalTime = value.includes("T") && !/(?:Z|[+-]\d{2}:?\d{2})$/i.test(value);
+      date = new Date(hasLocalTime ? `${value}Z` : value);
+    }
   }
-  return fallbackDate.toISOString();
+  if (!date || Number.isNaN(date.getTime())) {
+    throw new Error(`Published note ${relativePath} needs a stable date. Set date: YYYY-MM-DD or use the existing createTime field.`);
+  }
+  return date.toISOString();
 }
 
 function stripMarkdown(value) {
@@ -351,6 +359,7 @@ function publicPost(entry) {
 async function buildPublication() {
   const allFiles = await walkFiles(vaultRoot);
   const markdownFiles = allFiles.filter((filePath) => MARKDOWN_EXTENSION.test(filePath));
+  if (markdownFiles.length === 0) throw new Error("The posts vault has no Markdown files. Check out the vault before preparing its publication.");
   const noteIndex = createNoteIndex(markdownFiles);
   const assets = allFiles.filter((filePath) => ALLOWED_ASSET_EXTENSIONS.has(path.extname(filePath).toLowerCase()));
   const assetsByBasename = new Map();
@@ -362,7 +371,7 @@ async function buildPublication() {
   const entries = [];
   const referencedAssetsByLang = new Map(Object.keys(LOCALES).map((locale) => [locale, new Set()]));
   for (const filePath of markdownFiles) {
-    const source = await readFile(filePath, "utf8");
+    const source = (await readFile(filePath, "utf8")).replace(/\r\n/g, "\n");
     if (!hasStrictPublishOptIn(source)) continue;
     let parsed;
     try {
@@ -372,7 +381,9 @@ async function buildPublication() {
     }
     if (parsed.data.publish !== true) continue;
     const relativePath = toPosix(path.relative(vaultRoot, filePath));
-    const fileStats = await stat(filePath);
+    if (parsed.data.draft === true || parsed.data.draft === "true") {
+      throw new Error(`Published note ${relativePath} is marked draft: true. Clear draft before publishing, or turn off publish.`);
+    }
     const lang = normalizeLocale(parsed.data.lang, relativePath);
     const translationKey = asOptionalString(parsed.data.translationKey);
     if (!translationKey) throw new Error(`Published note ${relativePath} must declare a stable translationKey`);
@@ -385,7 +396,7 @@ async function buildPublication() {
       rawContent: parsed.content.trim(),
       title,
       summary: deriveSummary(parsed.data, parsed.content),
-      date: normalizeDate(parsed.data, fileStats.mtime),
+      date: normalizeDate(parsed.data, relativePath),
       lang,
       htmlLang: LOCALES[lang].htmlLang,
       translationKey,
@@ -475,74 +486,75 @@ async function buildPublication() {
   };
 }
 
-async function writePublication({ manifest, entries, referencedAssetsByLang }) {
-  const expectedQuartzRoot = path.resolve(projectRoot, ".quartz-content");
-  if (quartzContentRoot !== expectedQuartzRoot) {
-    throw new Error(`Refusing to replace unexpected Quartz content directory: ${quartzContentRoot}`);
+function quartzProjection({ entries, referencedAssetsByLang }) {
+  const files = new Map();
+  for (const entry of entries) {
+    files.set(`${entry.lang}/${entry.quartzRelativePath}`, { text: entry.quartzSource });
   }
-  await rm(quartzContentRoot, { recursive: true, force: true });
-  await mkdir(quartzContentRoot, { recursive: true });
-  for (const locale of Object.keys(LOCALES)) {
-    const localeRoot = assertInside(quartzContentRoot, path.join(quartzContentRoot, locale), "Quartz locale root");
-    await mkdir(localeRoot, { recursive: true });
-    for (const entry of entries.filter((candidate) => candidate.lang === locale)) {
-      const destination = assertInside(localeRoot, path.join(localeRoot, entry.quartzRelativePath), "Published note");
-      await mkdir(path.dirname(destination), { recursive: true });
-      await writeFile(destination, entry.quartzSource, "utf8");
+  for (const [locale, assets] of referencedAssetsByLang) {
+    for (const asset of assets) {
+      files.set(`${locale}/${toPosix(path.relative(vaultRoot, asset))}`, { sourcePath: asset });
     }
-    for (const asset of referencedAssetsByLang.get(locale)) {
-      const relativePath = path.relative(vaultRoot, asset);
-      const destination = assertInside(localeRoot, path.join(localeRoot, relativePath), "Published asset");
-      await mkdir(path.dirname(destination), { recursive: true });
-      await copyFile(asset, destination);
-    }
-    const hasPublishedIndex = entries.some((entry) => entry.lang === locale && entry.quartzSlug === "index");
-    if (!hasPublishedIndex) {
+    const indexPath = `${locale}/index.md`;
+    if (!files.has(indexPath)) {
       const body = locale === "en"
         ? "# One Blog\n\nThere are no published homepage notes in English yet."
         : "# One Blog\n\n当前还没有已发布的中文首页笔记。";
-      await writeFile(
-        path.join(localeRoot, "index.md"),
-        `---\ntitle: One Blog\npublish: true\nlang: ${LOCALES[locale].htmlLang}\ntranslationKey: generated-home-${locale}\n---\n\n${body}\n`,
-        "utf8",
-      );
+      files.set(indexPath, {
+        text: `---\ntitle: One Blog\npublish: true\nlang: ${LOCALES[locale].htmlLang}\ntranslationKey: generated-home-${locale}\n---\n\n${body}\n`,
+      });
     }
   }
-  await mkdir(path.dirname(generatedManifestPath), { recursive: true });
-  await writeFile(generatedManifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+  return files;
 }
 
-async function useGeneratedPublication(reason) {
-  const existing = await readFile(generatedManifestPath, "utf8").catch(() => undefined);
-  if (!existing) return false;
-  const parsed = JSON.parse(existing);
-  if (!Array.isArray(parsed.posts)) throw new Error("The generated publication manifest is invalid.");
-  console.log(`${reason}; using ${parsed.posts.length} pre-generated published note(s).`);
-  return true;
-}
-
-if (!existsSync(vaultRoot)) {
-  if (!(await useGeneratedPublication("Vault unavailable"))) {
-    throw new Error("The vault is unavailable and no generated publication manifest exists.");
+async function writePublication(files, serializedManifest) {
+  const destinations = [...files].map(([name, file]) => [
+    assertInside(quartzContentRoot, path.join(quartzContentRoot, name), "Quartz projection file"),
+    file,
+  ]);
+  await rm(quartzContentRoot, { recursive: true, force: true });
+  for (const [destination, file] of destinations) {
+    await mkdir(path.dirname(destination), { recursive: true });
+    if (file.sourcePath) await copyFile(file.sourcePath, destination);
+    else await writeFile(destination, file.text, "utf8");
   }
-  process.exit(0);
+  await mkdir(path.dirname(generatedManifestPath), { recursive: true });
+  await writeFile(generatedManifestPath, serializedManifest, "utf8");
 }
+
+async function verifyPublication(files, serializedManifest) {
+  const existing = await readFile(generatedManifestPath, "utf8").catch(() => undefined);
+  if (existing?.replace(/\r\n/g, "\n") !== serializedManifest) {
+    throw new Error("Published content manifest is missing or stale. Run npm run content:prepare.");
+  }
+
+  const stale = (name) =>
+    new Error(`Quartz publication projection is stale at ${name}. Run npm run content:prepare.`);
+  if (!existsSync(quartzContentRoot)) throw stale(".quartz-content");
+  for (const entry of await readdir(quartzContentRoot, { recursive: true, withFileTypes: true })) {
+    if (entry.isDirectory()) continue;
+    const name = toPosix(path.relative(quartzContentRoot, path.join(entry.parentPath, entry.name)));
+    if (!entry.isFile() || !files.has(name)) throw stale(name);
+  }
+  for (const [name, file] of files) {
+    const destination = assertInside(quartzContentRoot, path.join(quartzContentRoot, name), "Quartz projection file");
+    const current = await readFile(destination).catch(() => undefined);
+    if (!current) throw stale(name);
+    const matches = file.sourcePath
+      ? current.equals(await readFile(file.sourcePath))
+      : current.toString("utf8").replace(/\r\n/g, "\n") === file.text;
+    if (!matches) throw stale(name);
+  }
+}
+
+if (!existsSync(vaultRoot)) throw new Error("Check out the posts vault before generating or verifying public content.");
 
 const publication = await buildPublication();
-// Vercel CLI intentionally excludes the private vault from source uploads. It
-// may still materialize the empty submodule directory, so presence alone is not
-// enough to distinguish that safe build input from a genuinely empty vault.
-if (process.env.VERCEL && publication.manifest.posts.length === 0) {
-  if (await useGeneratedPublication("Vault excluded from Vercel source upload")) process.exit(0);
-}
+const files = quartzProjection(publication);
 const serializedManifest = `${JSON.stringify(publication.manifest, null, 2)}\n`;
-if (checkOnly) {
-  const existing = await readFile(generatedManifestPath, "utf8").catch(() => undefined);
-  if (!existing) throw new Error("Published content manifest is missing. Run npm run content:prepare.");
-  if (existing !== serializedManifest) throw new Error("Published content manifest is stale. Run npm run content:prepare.");
-} else {
-  await writePublication(publication);
-}
+if (checkOnly) await verifyPublication(files, serializedManifest);
+else await writePublication(files, serializedManifest);
 
 const referencedAssetCount = new Set(
   [...publication.referencedAssetsByLang.values()].flatMap((assets) => [...assets]),

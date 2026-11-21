@@ -1,6 +1,6 @@
 ---
 title: Quartz Chinese–English Switching Example
-description: An English example demonstrating how One Blog pairs and switches translated articles.
+description: Switch between the Chinese and English versions of this Quartz article and see how One Blog pairs translations and indexes each language separately.
 date: 2026-08-30
 publish: true
 lang: en-US

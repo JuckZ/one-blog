@@ -54,7 +54,7 @@ async function findOutput(pathname: string): Promise<string | undefined> {
     const outputPath = safeOutputPath(candidate);
     if (!outputPath) continue;
     try {
-      if ((await stat(outputPath)).isFile()) return outputPath;
+      if ((await stat(/* turbopackIgnore: true */ outputPath)).isFile()) return outputPath;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     }
@@ -135,7 +135,7 @@ async function serve(request: Request, headOnly = false): Promise<Response> {
 
   let body: Buffer;
   try {
-    body = await readFile(selectedPath);
+    body = await readFile(/* turbopackIgnore: true */ selectedPath);
   } catch {
     return new Response("Not Found", { status: 404 });
   }

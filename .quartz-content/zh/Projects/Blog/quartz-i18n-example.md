@@ -1,6 +1,6 @@
 ---
 title: Quartz 中英文切换示例
-description: 一篇用于演示 One Blog 中英文文章配对与切换的中文示例。
+description: 体验 Quartz 同一篇文章的中英文切换，了解 One Blog 如何配对译文并为每种语言维护独立索引。
 date: 2026-08-30
 publish: true
 lang: zh-CN

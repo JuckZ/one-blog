@@ -41,7 +41,7 @@
   "posts": [
     {
       "title": "One Blog",
-      "summary": "A personal digital garden about software engineering, AI tools, knowledge management, and product practice.",
+      "summary": "One Blog is my digital garden of evolving notes on software engineering, AI tools, knowledge management with Obsidian, and building products.",
       "date": "2026-08-30T00:00:00.000Z",
       "lang": "en",
       "htmlLang": "en-US",
@@ -60,7 +60,7 @@
     },
     {
       "title": "One Blog",
-      "summary": "记录软件工程、AI 工具、个人知识管理与产品实践的个人数字花园。",
+      "summary": "One Blog 是我的个人数字花园，持续更新软件工程、AI 工具、Obsidian 知识管理和产品实践的公开笔记。",
       "date": "2026-08-30T00:00:00.000Z",
       "lang": "zh",
       "htmlLang": "zh-CN",
@@ -79,7 +79,7 @@
     },
     {
       "title": "Quartz Chinese–English Switching Example",
-      "summary": "An English example demonstrating how One Blog pairs and switches translated articles.",
+      "summary": "Switch between the Chinese and English versions of this Quartz article and see how One Blog pairs translations and indexes each language separately.",
       "date": "2026-08-30T00:00:00.000Z",
       "lang": "en",
       "htmlLang": "en-US",
@@ -99,7 +99,7 @@
     },
     {
       "title": "Quartz 中英文切换示例",
-      "summary": "一篇用于演示 One Blog 中英文文章配对与切换的中文示例。",
+      "summary": "体验 Quartz 同一篇文章的中英文切换，了解 One Blog 如何配对译文并为每种语言维护独立索引。",
       "date": "2026-08-30T00:00:00.000Z",
       "lang": "zh",
       "htmlLang": "zh-CN",
@@ -119,7 +119,7 @@
     },
     {
       "title": "Chocolatey",
-      "summary": "在 Windows 上安装和使用 Chocolatey，并通过命令行或图形界面管理软件包。",
+      "summary": "在 Windows 上安装 Chocolatey，学习用 Chocolatey CLI 2.x 查找、安装、升级和卸载软件包，并了解 Chocolatey GUI。",
       "date": "2024-01-29T00:00:00.000Z",
       "lang": "zh",
       "htmlLang": "zh-CN",

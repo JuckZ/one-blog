@@ -2,7 +2,7 @@ import '../styles/globals.css'
 import { DevtoolsProvider } from "@providers/devtools";
 import { Refine } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
-import { notificationProvider, RefineSnackbarProvider } from "@refinedev/mui";
+import { RefineSnackbarProvider, useNotificationProvider } from "@refinedev/mui";
 import routerProvider from "@refinedev/nextjs-router";
 import { Metadata } from "next";
 import { cookies, headers } from "next/headers";
@@ -25,15 +25,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = cookies();
-  const requestHeaders = headers();
+  const [cookieStore, requestHeaders] = await Promise.all([cookies(), headers()]);
   const theme = cookieStore.get("theme");
-  const defaultMode = theme?.value === "dark" ? "dark" : "light";
+  const defaultMode = theme?.value === "dark" || theme?.value === "light" ? theme.value : undefined;
   const htmlLanguage = requestHeaders.get("x-one-blog-locale") ?? "zh-CN";
   const isPublicBlogRoute = requestHeaders.get("x-one-blog-public") === "1";
 
@@ -52,7 +51,7 @@ export default function RootLayout({
                       routerProvider={routerProvider}
                       authProvider={authProvider}
                       dataProvider={dataProvider}
-                      notificationProvider={notificationProvider}
+                      notificationProvider={useNotificationProvider}
                       resources={[
                         {
                           name: "blog_posts",
@@ -78,7 +77,6 @@ export default function RootLayout({
                       options={{
                         syncWithLocation: true,
                         warnWhenUnsavedChanges: true,
-                        useNewQueryKeys: true,
                         projectId: "EYhSsq-qspR72-2SydKw",
                       }}
                     >

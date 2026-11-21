@@ -1,6 +1,6 @@
 ---
 title: One Blog
-description: A personal digital garden about software engineering, AI tools, knowledge management, and product practice.
+description: One Blog is my digital garden of evolving notes on software engineering, AI tools, knowledge management with Obsidian, and building products.
 date: 2026-08-30
 publish: true
 lang: en-US

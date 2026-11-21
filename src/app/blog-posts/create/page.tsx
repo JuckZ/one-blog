@@ -56,7 +56,6 @@ export default function BlogPostCreate() {
           control={control}
           name={"categoryId"}
           rules={{ required: "This field is required" }}
-          // eslint-disable-next-line
           defaultValue={null as any}
           render={({ field }) => (
             <Autocomplete
