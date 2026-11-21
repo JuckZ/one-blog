@@ -21,7 +21,7 @@ export default function BlogPostList() {
     },
   });
 
-  const { data: categoryData, isLoading: categoryIsLoading } = useMany({
+  const { result: categoryData, query: { isLoading: categoryIsLoading } } = useMany({
     resource: "categories",
     ids:
       dataGridProps?.rows
@@ -61,10 +61,6 @@ export default function BlogPostList() {
         flex: 1,
         headerName: "Category",
         minWidth: 300,
-        valueGetter: ({ row }) => {
-          const value = row?.categories;
-          return value;
-        },
         renderCell: function render({ value }) {
           return categoryIsLoading ? (
             <>Loading...</>
@@ -106,7 +102,7 @@ export default function BlogPostList() {
         minWidth: 80,
       },
     ],
-    [categoryData]
+    [categoryData, categoryIsLoading]
   );
 
   return (

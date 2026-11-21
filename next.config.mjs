@@ -3,14 +3,10 @@ const nextConfig = {
   env: {
     SITE_ENGINE: process.env.SITE_ENGINE ?? "next",
   },
-  experimental:
-    process.env.SITE_ENGINE === "quartz"
-      ? {
-          outputFileTracingIncludes: {
-            "/*": ["./.quartz-output/**/*"],
-          },
-        }
-      : undefined,
+  outputFileTracingIncludes: process.env.SITE_ENGINE === "quartz"
+    ? { "/quartz-render": ["./.quartz-output/**/*"] }
+    : undefined,
+  outputFileTracingExcludes: { "/*": ["./posts/**/*"] },
   poweredByHeader: false,
 };
 

@@ -13,8 +13,8 @@ function escapeXml(value: string): string {
     .replaceAll("'", "&apos;");
 }
 
-export function GET(_request: Request, { params }: { params: { locale: string } }) {
-  const { locale } = params;
+export async function GET(_request: Request, { params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
   if (!isLocale(locale)) return new Response("Not Found", { status: 404 });
 
   const siteUrl = getSiteUrl();

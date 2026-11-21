@@ -10,6 +10,22 @@ async function navigateRoot(page: Page, expectedLocale: "zh" | "en") {
 }
 
 test.describe("Next and Refine bilingual publication", () => {
+  test("the Refine admin redirects anonymous visitors and displays a mocked login error", async ({ page }) => {
+    await page.route(/\/auth\/v1\/token(?:\?|$)/, (route) =>
+      route.fulfill({
+        status: 400,
+        headers: { "access-control-allow-origin": "*" },
+        json: { code: "invalid_credentials", msg: "Invalid login credentials" },
+      }),
+    );
+    await page.goto("/blog-posts");
+    await expect(page).toHaveURL(/\/login(?:\?.*)?$/);
+    await page.getByRole("textbox", { name: /email/i }).fill("publish-test@example.invalid");
+    await page.locator('input[type="password"]').fill("mock-password");
+    await page.getByRole("button", { name: /sign in/i }).click();
+    await expect(page.getByText("Invalid login credentials")).toBeVisible();
+  });
+
   test("root negotiates browser language and gives Cookie priority", async ({ browser, baseURL }) => {
     if (!baseURL) throw new Error("Playwright baseURL is required");
     const context = await browser.newContext({ baseURL, locale: "zh-CN" });

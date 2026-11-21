@@ -9,10 +9,7 @@ import {
 } from "@refinedev/mui";
 
 export default function CategoryShow() {
-  const { queryResult } = useShow({});
-  const { data, isLoading } = queryResult;
-
-  const record = data?.data;
+  const { result: record, query: { isLoading } } = useShow({});
 
   return (
     <Show isLoading={isLoading}>

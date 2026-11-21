@@ -9,7 +9,7 @@ import { Controller } from "react-hook-form";
 export default function BlogPostEdit() {
   const {
     saveButtonProps,
-    refineCore: { queryResult, formLoading, onFinish },
+    refineCore: { query, formLoading, onFinish },
     handleSubmit,
     register,
     control,
@@ -22,7 +22,7 @@ export default function BlogPostEdit() {
     },
   });
 
-  const blogPostsData = queryResult?.data?.data;
+  const blogPostsData = query?.data?.data;
 
   const { autocompleteProps: categoryAutocompleteProps } = useAutocomplete({
     resource: "categories",
@@ -53,7 +53,6 @@ export default function BlogPostEdit() {
           control={control}
           name={"categoryId"}
           rules={{ required: "This field is required" }}
-          // eslint-disable-next-line
           defaultValue={null as any}
           render={({ field }) => (
             <Autocomplete

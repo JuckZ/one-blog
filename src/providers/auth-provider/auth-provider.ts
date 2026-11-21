@@ -1,10 +1,10 @@
 "use client";
 
-import { AuthBindings } from "@refinedev/core";
+import type { AuthProvider } from "@refinedev/core";
 import { supabaseClient } from "@utility/supabase-client";
 import Cookies from "js-cookie";
 
-export const authProvider: AuthBindings = {
+export const authProvider: AuthProvider = {
   login: async ({ email, password }) => {
     const { data, error } = await supabaseClient.auth.signInWithPassword({
       email,

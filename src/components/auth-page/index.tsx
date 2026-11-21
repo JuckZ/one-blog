@@ -1,7 +1,7 @@
 "use client";
 import { AppIcon } from "@components/app-icon";
 import type { AuthPageProps } from "@refinedev/core";
-import { AuthPage as AuthPageBase, ThemedTitleV2 } from "@refinedev/mui";
+import { AuthPage as AuthPageBase, ThemedTitle } from "@refinedev/mui";
 
 export const AuthPage = (props: AuthPageProps) => {
   return (
@@ -14,7 +14,7 @@ export const AuthPage = (props: AuthPageProps) => {
         },
       }}
       title={
-        <ThemedTitleV2
+        <ThemedTitle
           collapsed={false}
           text="Refine Project"
           icon={<AppIcon />}

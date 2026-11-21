@@ -8,6 +8,7 @@ import { getDictionary, isLocale, localeConfig, type Locale } from "@/i18n";
 import { getAllPublishedPosts, getPost, getTranslation } from "@/lib/content";
 
 export const dynamicParams = false;
+type ArticlePageProps = { params: Promise<{ locale: string; slug: string }> };
 
 export function generateStaticParams() {
   return getAllPublishedPosts().map((post) => ({ locale: post.lang, slug: post.slug }));
@@ -18,8 +19,8 @@ function resolvePost(params: { locale: string; slug: string }) {
   return getPost(params.locale, decodeURI(params.slug));
 }
 
-export function generateMetadata({ params }: { params: { locale: string; slug: string } }): Metadata {
-  const post = resolvePost(params);
+export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
+  const post = resolvePost(await params);
   if (!post) return {};
   const targetLocale: Locale = post.lang === "zh" ? "en" : "zh";
   const translation = getTranslation(post, targetLocale);
@@ -40,8 +41,8 @@ export function generateMetadata({ params }: { params: { locale: string; slug: s
   };
 }
 
-export default function PostPage({ params }: { params: { locale: string; slug: string } }) {
-  const post = resolvePost(params);
+export default async function PostPage({ params }: ArticlePageProps) {
+  const post = resolvePost(await params);
   if (!post) notFound();
   const dictionary = getDictionary(post.lang);
   const targetLocale: Locale = post.lang === "zh" ? "en" : "zh";

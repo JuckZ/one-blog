@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default function LegacyPost({ params }: { params: { slug: string } }) {
-  redirect(`/zh/posts/${params.slug}`);
+export default async function LegacyPost({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  redirect(`/zh/posts/${slug}`);
 }

@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { defaultLocale, isLocale, localeConfig } from "@/i18n";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const isQuartz = process.env.SITE_ENGINE === "quartz";
   const requestedPathname = request.nextUrl.pathname;
   const isDefaultFeed = requestedPathname === "/rss.xml" || (isQuartz && requestedPathname === "/index.xml");

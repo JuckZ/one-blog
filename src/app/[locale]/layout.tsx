@@ -9,15 +9,16 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
-export default function LocaleLayout({
+export default async function LocaleLayout({
   children,
   params,
-}: Readonly<{ children: React.ReactNode; params: { locale: string } }>) {
-  if (!isLocale(params.locale)) notFound();
+}: Readonly<{ children: React.ReactNode; params: Promise<{ locale: string }> }>) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50" lang={localeConfig[params.locale].htmlLang}>
+    <div className="flex min-h-screen flex-col bg-slate-50" lang={localeConfig[locale].htmlLang}>
       {children}
-      <PublicFooter locale={params.locale} />
+      <PublicFooter locale={locale} />
     </div>
   );
 }

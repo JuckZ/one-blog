@@ -5,11 +5,7 @@ const projectRoot = process.cwd();
 const outputRoot = path.resolve(projectRoot, ".vercel", "output");
 const configPath = path.join(outputRoot, "config.json");
 const functionsRoot = path.join(outputRoot, "functions");
-const middlewareFunction = path.join(
-  functionsRoot,
-  "src",
-  "middleware.func",
-);
+const proxyEntries = new Set(["src/proxy", "src/middleware"]);
 const engine = (process.env.SITE_ENGINE ?? "next").toLowerCase();
 const privateRouteSegments = [
   "blog-posts",
@@ -35,7 +31,7 @@ if (
 const config = JSON.parse(await readFile(configPath, "utf8"));
 if (engine === "quartz") {
   const middlewareIndex = config.routes.findIndex(
-    (route) => route.middlewarePath === "src/middleware",
+    (route) => proxyEntries.has(route.middlewarePath),
   );
   const quartzRewrite = {
     src: "^/(?!quartz-render(?:/|$))(.*)$",
@@ -51,7 +47,7 @@ if (engine === "quartz") {
 
 if (engine === "next") {
   const middlewareIndex = config.routes.findIndex(
-    (route) => route.middlewarePath === "src/middleware",
+    (route) => proxyEntries.has(route.middlewarePath),
   );
   const localeHeaderRoute = (locale, htmlLang) => ({
     src: `^/${locale}(?:/.*)?$`,
@@ -122,8 +118,10 @@ if (engine === "next") {
     await rm(path.join(functionsRoot, relativeFunctionPath), { recursive: true, force: true });
   }
 
-  await rm(middlewareFunction, { recursive: true, force: true });
-  const middlewareParent = path.dirname(middlewareFunction);
+  for (const entry of proxyEntries) {
+    await rm(path.join(functionsRoot, `${entry}.func`), { recursive: true, force: true });
+  }
+  const middlewareParent = path.join(functionsRoot, "src");
   try {
     if ((await readdir(middlewareParent)).length === 0) {
       await rm(middlewareParent, { recursive: true });

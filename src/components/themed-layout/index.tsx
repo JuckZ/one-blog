@@ -2,15 +2,15 @@
 
 import { AppIcon } from "@components/app-icon";
 import { Header } from "@components/header";
-import { ThemedLayoutV2, ThemedTitleV2 } from "@refinedev/mui";
+import { ThemedLayout as RefineLayout, ThemedTitle } from "@refinedev/mui";
 import React from "react";
 
 export const ThemedLayout = ({ children }: React.PropsWithChildren) => {
   return (
-    <ThemedLayoutV2
+    <RefineLayout
       Header={() => <Header sticky />}
       Title={({ collapsed }) => (
-        <ThemedTitleV2
+        <ThemedTitle
           collapsed={collapsed}
           text="Refine Project"
           icon={<AppIcon />}
@@ -18,6 +18,6 @@ export const ThemedLayout = ({ children }: React.PropsWithChildren) => {
       )}
     >
       {children}
-    </ThemedLayoutV2>
+    </RefineLayout>
   );
 };
