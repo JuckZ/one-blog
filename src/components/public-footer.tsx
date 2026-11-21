@@ -12,10 +12,9 @@ export function PublicFooter({ locale }: PublicFooterProps) {
   return (
     <footer className="border-t border-slate-200 bg-white text-sm text-slate-600">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-3 px-5 py-6 sm:flex-row sm:items-center sm:justify-between">
-        <span>{dictionary.footerNote}</span>
+        <span>{dictionary.siteName}</span>
         {peerSiteUrl ? (
-          <nav aria-label={dictionary.friendLinks} className="flex flex-wrap items-center gap-2">
-            <span>{dictionary.peerSiteIntro}</span>
+          <nav aria-label={dictionary.friendLinks}>
             <a
               id="one-blog-peer-link"
               href={peerSiteUrl}

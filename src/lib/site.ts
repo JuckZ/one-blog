@@ -1,5 +1,7 @@
+import { getVercelPublicSite } from "./public-sites.mjs";
+
 export function getSiteUrl(): URL {
-  const explicitUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const explicitUrl = getVercelPublicSite()?.url ?? process.env.NEXT_PUBLIC_SITE_URL;
   if (explicitUrl) return new URL(explicitUrl);
 
   const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
@@ -7,7 +9,7 @@ export function getSiteUrl(): URL {
 }
 
 export function getPeerSiteUrl(): string | undefined {
-  const configuredUrl = process.env.NEXT_PUBLIC_PEER_SITE_URL;
+  const configuredUrl = getVercelPublicSite()?.peerUrl ?? process.env.NEXT_PUBLIC_PEER_SITE_URL;
   if (!configuredUrl) return undefined;
 
   const peerSiteUrl = new URL(configuredUrl);

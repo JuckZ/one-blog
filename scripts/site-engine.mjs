@@ -4,6 +4,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 
 import { postprocessQuartzLocale } from "./postprocess-quartz-i18n.mjs";
+import { getVercelPublicSite } from "../src/lib/public-sites.mjs";
 
 const projectRoot = process.cwd();
 const action = process.argv[2] ?? "build";
@@ -68,6 +69,7 @@ async function buildQuartz() {
   if (process.env.QUARTZ_LOCALE && !process.env.QUARTZ_LOCALES) {
     console.warn("QUARTZ_LOCALE is deprecated; both locales are built by default. Use QUARTZ_LOCALES to override.");
   }
+  const productionSite = getVercelPublicSite();
   const configuredBaseUrl = process.env.QUARTZ_BASE_URL;
   const explicitBaseUrl = configuredBaseUrl?.toLowerCase() === "auto"
     ? undefined
@@ -75,7 +77,7 @@ async function buildQuartz() {
   const vercelHost = configuredBaseUrl?.toLowerCase() === "auto"
     ? process.env.VERCEL_URL ?? process.env.VERCEL_PROJECT_PRODUCTION_URL
     : process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
-  const rawBaseUrl = explicitBaseUrl ?? vercelHost;
+  const rawBaseUrl = productionSite?.url ?? explicitBaseUrl ?? vercelHost;
   let baseUrlRoot = "one-blog.vercel.app";
   let siteOrigin = "https://one-blog.vercel.app";
   if (rawBaseUrl) {
@@ -83,7 +85,7 @@ async function buildQuartz() {
     baseUrlRoot = `${parsed.host}${parsed.pathname}`.replace(/\/$/, "");
     siteOrigin = parsed.origin;
   }
-  const configuredPeerSiteUrl = process.env.NEXT_PUBLIC_PEER_SITE_URL;
+  const configuredPeerSiteUrl = productionSite?.peerUrl ?? process.env.NEXT_PUBLIC_PEER_SITE_URL;
   let peerSiteUrl;
   if (configuredPeerSiteUrl) {
     const parsedPeerSiteUrl = new URL(configuredPeerSiteUrl);
@@ -113,11 +115,11 @@ async function buildQuartz() {
       )
       .replace(/^  locale: .*$/m, `  locale: ${requestedLocale}`)
       .replace(/^  baseUrl: .*$/m, `  baseUrl: ${localeBaseUrl}`);
-    const footerPeerLinks = /^      links:\r?\n        Refine site: .*$/m;
+    const footerPeerLinks = /^      links: \{\}\r?$/m;
     if (!footerPeerLinks.test(runtimeConfig)) {
       throw new Error("Quartz footer peer-link placeholder is missing from quartz.config.yaml");
     }
-    const footerPeerLabel = locale === "zh" ? "Refine 版" : "Refine site";
+    const footerPeerLabel = locale === "zh" ? "博客" : "Blog";
     runtimeConfig = runtimeConfig.replace(
       footerPeerLinks,
       peerSiteUrl

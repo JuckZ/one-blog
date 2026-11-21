@@ -155,7 +155,7 @@ test.describe("Quartz bilingual publication", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/zh");
     const footer = page.locator("footer");
-    const friend = footer.getByRole("link", { name: "Refine 版" });
+    const friend = footer.getByRole("link", { name: "博客", exact: true });
     const languageNavigation = page.getByRole("navigation", { name: "切换语言" });
     const switcher = languageNavigation.getByRole("link", { name: "English" });
     await expect(friend).toBeVisible();
@@ -196,15 +196,21 @@ test.describe("Quartz bilingual publication", () => {
     await expect(page).toHaveURL(/\/en$/);
   });
 
-  test("Quartz exposes the configured Refine site as a friend link", async ({ page }) => {
+  test("Quartz exposes the configured blog in both languages", async ({ page }) => {
     await page.goto("/zh");
     const footer = page.locator("footer");
-    const friend = footer.getByRole("link", { name: "Refine 版" });
+    const friend = footer.getByRole("link", { name: "博客", exact: true });
     await expect(friend).toBeVisible();
     await expect(friend).toHaveAttribute("href", process.env.NEXT_PUBLIC_PEER_SITE_URL!);
     await expect(friend).toHaveAttribute("rel", "friend noopener noreferrer");
     await expect(friend).toHaveAttribute("target", "_blank");
     await expect(page.locator("#one-blog-language-switcher #one-blog-peer-link")).toHaveCount(0);
+
+    await page.goto("/en");
+    await expect(footer.getByRole("link", { name: "Blog", exact: true })).toHaveAttribute(
+      "href",
+      process.env.NEXT_PUBLIC_PEER_SITE_URL!,
+    );
   });
 
   test("robots, sitemap, canonical and hreflang cover both Quartz locales", async ({ page, request, baseURL }) => {

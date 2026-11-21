@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { PostList } from "@/components/post-list";
 import { PublicHeader } from "@/components/public-header";
 import { getDictionary, isLocale, localeConfig } from "@/i18n";
+import { getPublishedPosts } from "@/lib/content";
 
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
   if (!isLocale(params.locale)) return {};
@@ -30,25 +32,59 @@ export default function LocaleHome({
   const dictionary = getDictionary(params.locale);
   const targetLocale = params.locale === "zh" ? "en" : "zh";
   const missingTranslation = searchParams?.translation === "missing";
+  const posts = getPublishedPosts(params.locale);
+  const introduction = posts.find((post) => post.translationKey === "home");
+  const recentPosts = posts
+    .filter((post) => post !== introduction && post.translationKey !== "quartz-i18n-example")
+    .slice(0, 3);
+  const hasRecentPosts = recentPosts.length > 0;
+  const readingList = hasRecentPosts ? recentPosts : posts.filter((post) => post === introduction);
 
   return (
     <>
       <PublicHeader locale={params.locale} alternateHref={`/${targetLocale}`} />
-      <main className="mx-auto w-full max-w-4xl flex-1 px-5 py-20">
+      <main className="mx-auto w-full max-w-4xl flex-1 px-5 pb-16 pt-8 sm:pt-12">
         {missingTranslation ? (
-          <p role="status" className="mb-8 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+          <p role="status" className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
             {dictionary.missingTranslation}
           </p>
         ) : null}
-        <div className="max-w-2xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-700">One Blog</p>
-          <h1 className="mt-5 text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">{dictionary.homeTitle}</h1>
-          <p className="mt-6 text-lg leading-8 text-slate-600">{dictionary.homeDescription}</p>
-          <Link href={`/${params.locale}/posts`} className="mt-8 inline-flex rounded-full bg-slate-950 px-5 py-3 font-semibold text-white hover:bg-blue-700">
-            {dictionary.browsePosts}
-          </Link>
-        </div>
-        <p className="mt-16 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">{dictionary.publicationNote}</p>
+        <section
+          aria-labelledby="home-heading"
+          className="rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950 px-6 py-8 sm:px-10 sm:py-10"
+        >
+          <h1 id="home-heading" className="text-balance text-3xl font-bold tracking-tight text-white sm:text-5xl">
+            {dictionary.homeTitle}
+          </h1>
+          <p className="mb-0 mt-4 max-w-xl text-pretty leading-7 text-slate-200 sm:text-lg">
+            {dictionary.siteDescription}
+          </p>
+          {introduction && hasRecentPosts && (
+            <Link
+              href={introduction.url}
+              className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-md text-sm font-semibold text-teal-200 underline underline-offset-4 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-200"
+            >
+              {dictionary.aboutBlog}
+              <span aria-hidden="true">→</span>
+            </Link>
+          )}
+        </section>
+
+        <section aria-labelledby="recent-posts" className="mt-9 sm:mt-11">
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <h2 id="recent-posts" className="mb-0 text-2xl font-bold tracking-tight text-slate-950">
+              {hasRecentPosts ? dictionary.recentPosts : dictionary.startReading}
+            </h2>
+            <Link
+              href={`/${params.locale}/posts`}
+              className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-teal-800 underline-offset-4 hover:underline"
+            >
+              {dictionary.allPosts}
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+          <PostList posts={readingList} locale={params.locale} headingLevel="h3" />
+        </section>
       </main>
     </>
   );

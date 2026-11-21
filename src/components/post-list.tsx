@@ -3,7 +3,15 @@ import Link from "next/link";
 import { getDictionary, localeConfig, type Locale } from "@/i18n";
 import type { Post } from "@/interfaces/post";
 
-export function PostList({ posts, locale }: { posts: Post[]; locale: Locale }) {
+export function PostList({
+  posts,
+  locale,
+  headingLevel: Heading = "h2",
+}: {
+  posts: Post[];
+  locale: Locale;
+  headingLevel?: "h2" | "h3";
+}) {
   const dictionary = getDictionary(locale);
   const dateFormatter = new Intl.DateTimeFormat(localeConfig[locale].dateLocale, {
     dateStyle: "long",
@@ -20,9 +28,9 @@ export function PostList({ posts, locale }: { posts: Post[]; locale: Locale }) {
           <p className="text-sm text-slate-500">
             {dictionary.publishedOn} {dateFormatter.format(new Date(post.date))}
           </p>
-          <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+          <Heading className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
             <Link href={post.url} className="hover:text-blue-700">{post.title}</Link>
-          </h2>
+          </Heading>
           <p className="mt-3 text-slate-600">{post.summary}</p>
           {post.tags.length > 0 && (
             <ul className="mt-4 flex flex-wrap gap-2" aria-label="tags">

@@ -116,30 +116,26 @@ Quartz 模式先生成静态 Quartz 站点，再由一个很薄的 Next.js 适�
 或 Output Directory。
 
 正式发布使用两个绑定同一 GitHub 仓库的 Vercel 项目。两者都保留 Framework Preset 为
-Next.js、Build Command 为 `npm run build`，并通过 `NEXT_PUBLIC_PEER_SITE_URL` 在各自的 footer
-中互相显示为友链。Quartz 使用官方 Footer 插件；Next + Refine 公共博客使用共享的自定义 Footer 组件。
+Next.js、Build Command 为 `npm run build`。`ihave.cool` 是知识库，`blog.ihave.cool` 是博客，
+两站在页脚互相链接。正式构建读取 Vercel 提供的生产主域名，生成 canonical、站点地图和页脚链接。
+本地、预览和其他部署可以继续通过 `NEXT_PUBLIC_PEER_SITE_URL` 配置页脚链接。
 
 Quartz 项目的 Production 环境：
 
 ```text
 SITE_ENGINE=quartz
 QUARTZ_LOCALES=zh-CN,en-US
-QUARTZ_BASE_URL=https://one-blog-bay.vercel.app
-NEXT_PUBLIC_SITE_URL=https://one-blog-bay.vercel.app
-NEXT_PUBLIC_PEER_SITE_URL=https://one-blog-refine.vercel.app
 ```
 
 Refine 项目的 Production 环境：
 
 ```text
 SITE_ENGINE=next
-NEXT_PUBLIC_SITE_URL=https://one-blog-refine.vercel.app
-NEXT_PUBLIC_PEER_SITE_URL=https://one-blog-bay.vercel.app
 ```
 
 Preview 环境可使用 `QUARTZ_BASE_URL=auto`。构建脚本会读取 Vercel 在构建阶段注入的
 `VERCEL_URL`，确保 Quartz 资源基路径、canonical 和 hreflang 指向当前预览，而不是旧部署。
-Production 必须使用最终公开域名；`QUARTZ_BASE_URL` 和 `NEXT_PUBLIC_SITE_URL` 应保持一致。
+自行部署时可用 `QUARTZ_BASE_URL` 和 `NEXT_PUBLIC_SITE_URL` 指定公开域名，两者应保持一致。
 
 Quartz 默认同时构建中英文；`QUARTZ_LOCALES` 仅用于本地诊断时限制构建语言。旧的
 `QUARTZ_LOCALE` 已弃用，不再把生产站点限制为单一语言。

@@ -5,6 +5,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 
+import { getVercelPublicSite } from "../src/lib/public-sites.mjs";
+
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const prepareScript = path.join(repositoryRoot, "scripts", "prepare-published-content.mjs");
 const postprocessScript = path.join(repositoryRoot, "scripts", "postprocess-quartz-i18n.mjs");
@@ -68,6 +70,19 @@ function expectPrepareFailure(pattern) {
 }
 
 try {
+  assert.deepEqual(
+    getVercelPublicSite({ VERCEL_ENV: "production", VERCEL_PROJECT_PRODUCTION_URL: "ihave.cool" }),
+    { url: "https://ihave.cool", peerUrl: "https://blog.ihave.cool" },
+  );
+  assert.deepEqual(
+    getVercelPublicSite({ VERCEL_ENV: "production", VERCEL_PROJECT_PRODUCTION_URL: "blog.ihave.cool" }),
+    { url: "https://blog.ihave.cool", peerUrl: "https://ihave.cool" },
+  );
+  assert.equal(
+    getVercelPublicSite({ VERCEL_ENV: "preview", VERCEL_PROJECT_PRODUCTION_URL: "ihave.cool" }),
+    undefined,
+  );
+
   const vault = path.join(temporaryRoot, "posts");
   await mkdir(path.join(vault, "Projects"), { recursive: true });
   await mkdir(path.join(vault, "Areas"), { recursive: true });
@@ -131,7 +146,7 @@ try {
   await mkdir(path.join(chineseOutputRoot, "projects"), { recursive: true });
   await writeFile(
     path.join(chineseOutputRoot, "projects", "chinese-only.html"),
-    "<!doctype html><html><head></head><body><main>仅中文</main><footer><ul><li><a href=\"https://refine.example.test\">Refine 版</a></li></ul></footer></body></html>",
+    "<!doctype html><html><head></head><body><main>仅中文</main><footer><ul><li><a href=\"https://refine.example.test\">博客</a></li></ul></footer></body></html>",
   );
   await runPostprocess("zh", chineseOutputRoot);
   const missingTranslationHtml = await readFile(

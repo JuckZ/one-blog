@@ -26,6 +26,30 @@ test.describe("Next and Refine bilingual publication", () => {
     }
   });
 
+  test("home shows public articles and a reading entry point in the selected language", async ({ page }) => {
+    await page.goto("/zh");
+    const chinesePosts = page.getByRole("region", { name: "近期文章" });
+    await expect(chinesePosts.getByRole("link", { name: "Chocolatey" })).toHaveAttribute("href", "/zh/posts/chocolatey");
+    await expect(chinesePosts.getByRole("link", { name: "全部文章" })).toHaveAttribute("href", "/zh/posts");
+    await expect(page.getByRole("link", { name: "关于这个博客" })).toHaveAttribute("href", "/zh/posts/home");
+    await expect(page.getByRole("main").getByText("publish: true", { exact: false })).toHaveCount(0);
+    await expect(chinesePosts.getByRole("link", { name: "Quartz 中英文切换示例" })).toHaveCount(0);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(chinesePosts.getByRole("link", { name: "Chocolatey" })).toBeInViewport();
+
+    await page.goto("/en");
+    const englishPosts = page.getByRole("region", { name: "Start reading" });
+    await expect(englishPosts.getByRole("link", { name: "One Blog", exact: true }))
+      .toHaveAttribute("href", "/en/posts/home");
+    await expect(englishPosts.getByRole("link", { name: "Chocolatey" })).toHaveCount(0);
+    await expect(page.getByRole("contentinfo").getByRole("link", { name: "Knowledge base", exact: true }))
+      .toHaveAttribute("href", process.env.NEXT_PUBLIC_PEER_SITE_URL!);
+
+    await englishPosts.getByRole("link", { name: "All posts" }).click();
+    await expect(page.getByRole("link", { name: "Quartz Chinese–English Switching Example" }))
+      .toHaveAttribute("href", "/en/posts/quartz-i18n-example");
+  });
+
   test("Chinese-only Chocolatey falls back with a notice and never enters English posts", async ({ page }) => {
     await page.goto("/zh/posts/chocolatey");
     await expect(page.getByRole("heading", { level: 1, name: "Chocolatey" }).first()).toBeVisible();
@@ -34,7 +58,7 @@ test.describe("Next and Refine bilingual publication", () => {
     await expect(canonical).toHaveAttribute("href", `${test.info().project.use.baseURL}/zh/posts/chocolatey`);
 
     const footer = page.getByRole("contentinfo");
-    const friend = footer.getByRole("link", { name: "Quartz 版" });
+    const friend = footer.getByRole("link", { name: "知识库", exact: true });
     await expect(friend).toHaveAttribute("href", process.env.NEXT_PUBLIC_PEER_SITE_URL!);
     await expect(friend).toHaveAttribute("rel", "friend noopener noreferrer");
     await expect(friend).toHaveAttribute("target", "_blank");
@@ -44,7 +68,7 @@ test.describe("Next and Refine bilingual publication", () => {
     await expect(languageNavigation.locator('[aria-current="page"]')).toHaveText("中");
     await expect(language).toHaveText("EN");
     await expect(language).toHaveAttribute("href", "/en?translation=missing&from=chocolatey");
-    await expect(page.locator("header").getByRole("link", { name: "Quartz 版" })).toHaveCount(0);
+    await expect(page.locator("header").getByRole("link", { name: "知识库", exact: true })).toHaveCount(0);
 
     await page.setViewportSize({ width: 390, height: 844 });
     const languageBox = await language.boundingBox();

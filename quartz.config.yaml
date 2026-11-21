@@ -231,8 +231,7 @@ plugins:
   - source: "@quartz-community/footer"
     enabled: true
     options:
-      links:
-        Refine site: https://one-blog-refine.vercel.app
+      links: {}
     layout:
       position: footer
       priority: 50
