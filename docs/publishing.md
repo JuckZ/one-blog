@@ -1,76 +1,37 @@
 # One Blog 发布与 i18n 约定
 
-One Blog 同时保留两套站点引擎：现有的 Next.js + Refine，以及 Quartz v5。两者读取同一个
-Obsidian vault，也遵守同一个显式发布规则；不需要移动或重组任何笔记目录。
+One Blog 的 Quartz 和 Next.js + Refine 站点从同一份 Obsidian 内容生成。笔记继续写在原来的目录里。
 
-## 1. 发布开关
+## 1. 日常写作和发布
 
-只要在笔记 frontmatter 顶层加入严格的 YAML 布尔值，即可进入发布集合：
-
-```yaml
----
-publish: true
----
-```
-
-只有未加引号的布尔值 `true` 有效。`publish: "true"`、`publish: false`、字符串和列表都不会
-发布。知识库已有一些笔记用 `publish` 保存出版社名称；这些非布尔值会被忽略，不会误公开。
-以后建议把出版社字段逐步命名为 `publisher`，但这不是发布前置条件。
-
-旧笔记中的 `draft` 属性已停用，清理时请移除。下架已发布的笔记时，设置 `publish: false`。
-
-构建前，`npm run content:prepare` 会扫描原 vault，并生成两份安全输入：
-
-- `src/generated/published-content.json`：供 Next.js 站点使用。
-- `.quartz-content/`：供 Quartz 使用，保留原笔记的相对路径。
-
-整个 `posts` vault 仍被 `.vercelignore` 排除。Quartz 只会收到已发布 Markdown，以及这些
-Markdown 明确引用且扩展名在允许列表内的图片、音视频或 PDF；未引用附件不会进入产物。
-
-## 2. i18n frontmatter
-
-公开笔记必须同时声明 `lang` 和稳定的 `translationKey`。构建不会猜测语言；缺少字段会直接失败，
-避免文章进入错误语言的搜索或图谱。
-
-完整写法：
+笔记保留原来的目录和模板。决定公开时设置布尔值 `publish: true`，补齐正文的语言和稳定标识。
+现有笔记的 `publish` 若是出版社等文本，仍按普通属性处理。下架时将 `publish` 改为 `false`。
 
 ```yaml
 ---
-title: 示例文章
-description: 可选的摘要
-date: 2026-08-30
 publish: true
 lang: zh-CN
 translationKey: stable-article-id
-tags:
-  - example
 ---
 ```
 
-字段约定：
+沿用 `date` 或模板已填写的 `published`、`created`、`createTime`。缺少日期时补一次
+`date: YYYY-MM-DD`。发布状态统一使用 `publish`。旧笔记若仍同时设置 `publish: true` 和
+`draft: true`，生成器会提示文件名并停止，供发布者核对公开意图。
 
-- `lang`：必填。中文使用 `zh-CN`，英文使用 `en-US`。
-- `translationKey`：必填，是不随标题和文件路径变化的内容 ID。中英文版本使用相同值；目前只有
-  单一语言的文章也需要填写，方便以后增加译文。
-- `title`：可选，Quartz 和 Next 都会回退到文件名。
-- `description` / `summary`：可选，Next 会从正文首段生成摘要。
-- `slug`：可选，只用于覆盖 Next 的文章 slug；默认使用 `translationKey`。
+发布执行者运行 `npm run content:prepare`，从私有 vault 生成两个站点的公开输入。
 
-译文可以放在知识库的任意现有目录，不要求建立 `zh/`、`en/` 或 `Public/`。例如：
+- `src/generated/published-content.json`：供 Next.js 站点使用。
+- `.quartz-content/`：供 Quartz 使用，按语言分开并保留主题目录。
 
-```yaml
-# 中文原文
-publish: true
-lang: zh-CN
-translationKey: quartz-i18n-design
-```
+生成后检查 Markdown、属性和附件。日常站点预览、构建和 Vercel 部署直接读取已提交的公开版本。
+`posts` 私有 vault 由 `.vercelignore` 排除。
 
-```yaml
-# English translation, stored anywhere in the vault
-publish: true
-lang: en-US
-translationKey: quartz-i18n-design
-```
+## 2. 翻译
+
+正文用中文时设 `lang: zh-CN`，用英文时设 `lang: en-US`。单语可以先发布。补译文时沿用原文的
+`translationKey`，按译文设置 `lang`，准备完成后分别开启发布。把译文放在同一个主题目录，便于
+维护笔记和保持 Quartz 地址稳定。标题、摘要、标签按需填写，Next 的自定义 `slug` 也是可选项。
 
 生成器先建立 `translationKey -> zh/en` 索引，然后生成 `.quartz-content/zh` 和
 `.quartz-content/en` 两份内容投影。投影会把 Wikilink 重写为当前语言的对应文章；原笔记不会被
@@ -118,6 +79,7 @@ Quartz 模式先生成静态 Quartz 站点，再由一个很薄的 Next.js 适�
 正式发布使用两个绑定同一 GitHub 仓库的 Vercel 项目。两者都保留 Framework Preset 为
 Next.js、Build Command 为 `npm run build`。`ihave.cool` 是知识库，`blog.ihave.cool` 是博客，
 两站在页脚互相链接。正式构建读取 Vercel 提供的生产主域名，生成 canonical、站点地图和页脚链接。
+两站均提供 `/zh/rss.xml` 和 `/en/rss.xml`，`/rss.xml` 使用默认语言。
 本地、预览和其他部署可以继续通过 `NEXT_PUBLIC_PEER_SITE_URL` 配置页脚链接。
 
 Quartz 项目的 Production 环境：
@@ -155,27 +117,12 @@ Actions 使用仅对 `one-hub` 有只读权限的 `POSTS_DEPLOY_KEY`，按 one-b
 检出并校验发布投影；Vercel 不拉取原始 vault，只消费 `.quartz-content/` 和
 `src/generated/published-content.json`。Vercel CLI 源码上传还会通过 `.vercelignore` 排除 vault。
 
-## 4. 发布前检查
-
-```bash
-npm run content:prepare
-npm run content:test
-npm run content:verify
-npm run build:quartz
-npm run build:next
-npm run test:e2e:refine
-npm run test:e2e
-```
-
-`.quartz-content/` 和 `src/generated/published-content.json` 都只含公开内容。提交前必须运行
-`content:prepare` 并提交这两个生成结果；CI 会用 `content:verify` 拒绝过期的发布投影。
-
-## 5. 自动测试与 Git 发布
+## 4. 自动测试与 Git 发布
 
 `.github/workflows/ci.yml` 会在 Pull Request 和 `main` 推送时执行：
 
-1. 发布规则 fixture 测试；
-2. 检查提交的公开内容投影是否与 vault 一致；
+1. 运行代码 lint 和发布规则测试。
+2. 用 `content:verify` 核对已提交的 JSON、Quartz 笔记和附件是否与固定的 vault 版本一致。
 3. 分别构建 Next + Refine 与 Quartz；
 4. 运行 Playwright 双语回归测试。
 
@@ -209,13 +156,12 @@ $env:PLAYWRIGHT_BASE_URL = "https://你的部署域名"
 npm run test:e2e:run
 ```
 
-## 6. 正式发布步骤
+## 5. 正式发布步骤
 
-1. 在 `posts`（one-hub）提交并推送公开笔记；无需创建或移动到 `Public` 目录。
-2. 在 one-blog 根目录运行 `npm run content:prepare`。
-3. 提交 `posts` 子模块指针、`.quartz-content/`、`src/generated/published-content.json` 和站点代码。
-4. 推送 one-blog 的 `main` 分支。
-5. CI 全部通过后自动部署 Quartz 与 Refine 两个 Production；失败时不会覆盖线上 Production。
+1. 在 `posts`（one-hub）提交并推送指定的笔记和附件，核对待推送的提交范围。
+2. 在 one-blog 根目录运行 `npm run content:prepare`，核对生成结果。将对应的 `posts` 子模块指针、
+   `.quartz-content/` 和 `src/generated/published-content.json` 一起提交。
+3. 推送 one-blog 的 `main`。CI 校验通过后，Quartz 和 Refine 自动部署到生产域名。
 
 两个项目的 `SITE_ENGINE` 分别固定为 `quartz` 和 `next`。如需交换域名或用途，只需修改对应
 项目的 `SITE_ENGINE` 与站点 URL 环境变量，再在 GitHub Actions 手动运行

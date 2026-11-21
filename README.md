@@ -2,13 +2,14 @@
 
 This repository supports two interchangeable site engines over the same Obsidian vault:
 
-- `SITE_ENGINE=next` — the existing Next.js + Refine application.
-- `SITE_ENGINE=quartz` — Quartz v5, served through the same Next.js/Vercel entrypoint.
+- `SITE_ENGINE=next` — Next.js 16 + Refine 5.
+- `SITE_ENGINE=quartz` — Quartz 5.1, served through the same Next.js/Vercel entrypoint.
 
-Both engines publish only notes with a strict YAML boolean `publish: true`. See
+Both engines build from the committed public content. Run `npm run content:prepare` when
+publishing notes selected with the YAML boolean `publish: true`. See
 [`docs/publishing.md`](docs/publishing.md) for the publishing and i18n contract.
 
-CI builds both engines and runs the bilingual Quartz Playwright regression suite. A successful
+CI verifies both generated content outputs, builds both engines, and runs both Playwright suites. A successful
 `main` build triggers two permanent Vercel projects: one uses `SITE_ENGINE=quartz`, the other uses
 `SITE_ENGINE=next`. Their footers link the knowledge base at `ihave.cool` and the blog at
 `blog.ihave.cool`. Other deployments can set `NEXT_PUBLIC_PEER_SITE_URL` for their footer link.

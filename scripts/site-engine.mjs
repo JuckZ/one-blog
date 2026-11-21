@@ -35,10 +35,6 @@ function run(command, args, options = {}) {
   });
 }
 
-async function prepareContent() {
-  await run(process.execPath, [path.join(projectRoot, "scripts", "prepare-published-content.mjs")]);
-}
-
 async function ensureQuartzDependencies(quartzRoot) {
   const lock = await readFile(path.join(quartzRoot, "package-lock.json"));
   const lockHash = createHash("sha256").update(lock).digest("hex");
@@ -169,7 +165,5 @@ async function runNext(nextAction) {
 }
 
 console.log(`Using site engine: ${engine}`);
-await prepareContent();
-
 if (engine === "quartz") await buildQuartz();
 await runNext(action);

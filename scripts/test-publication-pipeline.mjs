@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, utimes, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,10 +13,11 @@ const postprocessScript = path.join(repositoryRoot, "scripts", "postprocess-quar
 const temporaryBase = path.resolve(tmpdir());
 const temporaryRoot = await mkdtemp(path.join(temporaryBase, "one-blog-publication-"));
 
-function runPrepare() {
+function runPrepare(...args) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [prepareScript], {
+    const child = spawn(process.execPath, [prepareScript, ...args], {
       cwd: temporaryRoot,
+      env: { ...process.env, TZ: args.includes("--check") ? "Pacific/Honolulu" : "UTC" },
       stdio: "inherit",
       shell: false,
     });
@@ -43,9 +44,9 @@ function runPostprocess(locale, outputRoot) {
   });
 }
 
-function expectPrepareFailure(pattern) {
+function expectPrepareFailure(pattern, ...args) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [prepareScript], {
+    const child = spawn(process.execPath, [prepareScript, ...args], {
       cwd: temporaryRoot,
       stdio: ["ignore", "pipe", "pipe"],
       shell: false,
@@ -88,15 +89,15 @@ try {
   await mkdir(path.join(vault, "Areas"), { recursive: true });
   await writeFile(
     path.join(vault, "Projects", "topic-cn.md"),
-    "---\r\ntitle: 中文主题\r\npublish: true\r\nlang: zh-CN\r\ntranslationKey: topic\r\n---\r\n\r\n正文。\r\n\r\n返回 [[Projects/topic-cn|中文主题]]。\r\n\r\n![[image.png]]\r\n",
+    "---\r\ntitle: 中文主题\r\npublish: true\r\nlang: zh-CN\r\ntranslationKey: topic\r\ndate: 2026-08-30\r\n---\r\n\r\n正文。\r\n\r\n返回 [[Projects/topic-cn|中文主题]]。\r\n\r\n![[image.png]]\r\n",
   );
   await writeFile(
     path.join(vault, "Areas", "topic-en.md"),
-    "---\ntitle: Topic\npublish: true\nlang: en-US\ntranslationKey: topic\n---\n\nBody. See [[Projects/chinese-only|Chinese reference]].\n",
+    "---\ntitle: Topic\npublish: true\nlang: en-US\ntranslationKey: topic\ncreateTime: \"2026-08-31 09:15:00\"\n---\n\nBody. See [[Projects/chinese-only|Chinese reference]].\n",
   );
   await writeFile(
     path.join(vault, "Projects", "chinese-only.md"),
-    "---\ntitle: 仅中文\npublish: true\nlang: zh-CN\ntranslationKey: chinese-only\n---\n\n只有中文。\n",
+    "---\ntitle: 仅中文\npublish: true\nlang: zh-CN\ntranslationKey: chinese-only\ndate: 2026-09-01\n---\n\n只有中文。\n",
   );
   await writeFile(path.join(vault, "quoted.md"), "---\npublish: \"true\"\n---\n\nPrivate.\n");
   await writeFile(path.join(vault, "publisher.md"), "---\npublish:\n  - Example Press\n---\n\nPrivate.\n");
@@ -110,6 +111,7 @@ try {
   );
   assert.equal(manifest.schemaVersion, 2);
   assert.equal(manifest.posts.length, 3);
+  assert.equal(manifest.posts.find((post) => post.lang === "en").date, "2026-08-31T09:15:00.000Z");
   assert.deepEqual(new Set(manifest.posts.map((post) => post.path)), new Set([
     "Areas/topic-en.md",
     "Projects/chinese-only.md",
@@ -141,6 +143,19 @@ try {
   );
   await assert.rejects(readFile(path.join(temporaryRoot, ".quartz-content", "zh", "unused.png")));
   await assert.rejects(readFile(path.join(temporaryRoot, ".quartz-content", "zh", "quoted.md")));
+
+  // A fresh checkout may give source files new modification times.
+  await utimes(path.join(vault, "Areas", "topic-en.md"), new Date(0), new Date(0));
+  await runPrepare("--check");
+
+  const quartzProjection = path.join(temporaryRoot, ".quartz-content");
+  await writeFile(path.join(quartzProjection, "zh", "image.png"), "stale asset");
+  await expectPrepareFailure(/Quartz publication projection is stale at zh\/image\.png/, "--check");
+  await runPrepare();
+  const staleNote = path.join(quartzProjection, "zh", "unpublished.md");
+  await writeFile(staleNote, "Unexpected stale note.");
+  await expectPrepareFailure(/Quartz publication projection is stale at zh\/unpublished\.md/, "--check");
+  await rm(staleNote);
 
   const chineseOutputRoot = path.join(temporaryRoot, ".quartz-output", "zh");
   await mkdir(path.join(chineseOutputRoot, "projects"), { recursive: true });
@@ -186,13 +201,39 @@ try {
   await expectPrepareFailure(/must declare a stable translationKey/);
   await rm(missingKeyPath);
 
+  const missingDatePath = path.join(vault, "missing-date.md");
+  await writeFile(
+    missingDatePath,
+    "---\npublish: true\nlang: en-US\ntranslationKey: invalid\n---\n\nInvalid.\n",
+  );
+  await expectPrepareFailure(/needs a stable date/);
+  await rm(missingDatePath);
+
+  const draftPath = path.join(vault, "draft.md");
+  await writeFile(
+    draftPath,
+    "---\npublish: true\ndraft: true\nlang: zh-CN\ntranslationKey: draft\ndate: 2026-09-01\n---\n\nPrivate draft.\n",
+  );
+  await expectPrepareFailure(/is marked draft: true/);
+  await rm(draftPath);
+
   const duplicateKeyPath = path.join(vault, "duplicate-key.md");
   await writeFile(
     duplicateKeyPath,
-    "---\npublish: true\nlang: en-US\ntranslationKey: topic\n---\n\nDuplicate.\n",
+    "---\npublish: true\nlang: en-US\ntranslationKey: topic\ndate: 2026-09-01\n---\n\nDuplicate.\n",
   );
   await expectPrepareFailure(/Duplicate translationKey en:topic/);
   await rm(duplicateKeyPath);
+
+  const publishedNote = path.join(vault, "Projects", "chinese-only.md");
+  await writeFile(publishedNote, (await readFile(publishedNote, "utf8")).replace("publish: true", "publish: false"));
+  await runPrepare();
+  const afterUnpublish = JSON.parse(
+    await readFile(path.join(temporaryRoot, "src", "generated", "published-content.json"), "utf8"),
+  );
+  assert.equal(afterUnpublish.posts.some((post) => post.translationKey === "chinese-only"), false);
+  await assert.rejects(readFile(path.join(quartzProjection, "zh", "Projects", "chinese-only.md")));
+  await runPrepare("--check");
   console.log("Publication pipeline fixture passed.");
 } finally {
   const temporaryPrefix = temporaryBase.replace(/[\\/]+$/, "") + path.sep;
