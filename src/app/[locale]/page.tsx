@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   };
 }
 
-export default function LocaleHome({
+export default async function LocaleHome({
   params,
   searchParams,
 }: {
