@@ -17,6 +17,8 @@ publish: true
 发布。知识库已有一些笔记用 `publish` 保存出版社名称；这些非布尔值会被忽略，不会误公开。
 以后建议把出版社字段逐步命名为 `publisher`，但这不是发布前置条件。
 
+旧笔记中的 `draft` 属性已停用，清理时请移除。下架已发布的笔记时，设置 `publish: false`。
+
 构建前，`npm run content:prepare` 会扫描原 vault，并生成两份安全输入：
 
 - `src/generated/published-content.json`：供 Next.js 站点使用。

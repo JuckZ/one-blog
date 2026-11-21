@@ -11,7 +11,6 @@ authors:
   - Juck
 keywords:
   - ''
-draft: false
 publish: true
 lang: zh-CN
 translationKey: chocolatey
