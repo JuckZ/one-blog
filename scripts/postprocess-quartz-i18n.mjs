@@ -59,7 +59,7 @@ function decorateFooterPeerLink(html, peerSiteUrl) {
 }
 
 function injectLanguageSwitcher(html, navigation) {
-  const sidebarStart = html.indexOf('<div class="left sidebar">');
+  const sidebarStart = html.search(/<div class="left sidebar"(?:\s|>)/);
   const toolbarStart = sidebarStart === -1
     ? -1
     : html.indexOf('<div class="flex-component"', sidebarStart);
@@ -325,7 +325,7 @@ export async function postprocessQuartzLocale({ locale, outputRoot, siteOrigin, 
     const navLabel = locale === "zh" ? "切换语言" : "Switch language";
     const currentAriaLabel = locale === "zh" ? `当前语言: ${currentLabel}` : `Current language: ${currentLabel}`;
     const globe = '<svg class="one-blog-language-icon" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><path d="M3.6 9h16.8M3.6 15h16.8M12 3c2.2 2.45 3.3 5.45 3.3 9S14.2 18.55 12 21c-2.2-2.45-3.3-5.45-3.3-9S9.8 5.45 12 3Z"></path></svg>';
-    const nav = `<nav id="one-blog-language-switcher" aria-label="${navLabel}"><span class="one-blog-language-shell">${globe}<span aria-current="page" aria-label="${currentAriaLabel}" title="${currentLabel}">${currentShortLabel}</span><a href="${escapeHtml(targetHref)}" hreflang="${targetLocale === "zh" ? "zh-CN" : "en-US"}" aria-label="${targetLabel}" title="${targetLabel}" data-one-blog-lang="${targetLocale}" data-router-ignore>${targetShortLabel}</a></span></nav>`;
+    const nav = `<nav id="one-blog-language-switcher" aria-label="${navLabel}"><span class="one-blog-language-shell">${globe}<span aria-current="page" aria-label="${currentAriaLabel}" title="${currentLabel}">${currentShortLabel}</span><a href="${escapeHtml(targetHref)}" hreflang="${targetLocale === "zh" ? "zh-CN" : "en-US"}" aria-label="${targetLabel}" title="${targetLabel}" data-one-blog-lang="${targetLocale}" data-router-ignore data-no-prefetch>${targetShortLabel}</a></span></nav>`;
 
     const headLinks = [`<link rel="stylesheet" href="/${locale}/static/one-blog-i18n.css" data-persist="true"/>`];
     if (pathname === `/${locale}`) {
@@ -345,6 +345,10 @@ export async function postprocessQuartzLocale({ locale, outputRoot, siteOrigin, 
     html = html.replaceAll(FALLBACK_LINK_ORIGIN, "");
     html = localizeRelativeAttributes(html, locale, pathname);
     html = decorateFooterPeerLink(html, peerSiteUrl);
+    html = html.replace(
+      /window\.quartzStaticUrl\s*=\s*new URL\("[^"]*",\s*location\.href\)\.href/g,
+      `window.quartzStaticUrl = new URL("/${locale}/static/", location.href).href`,
+    );
     html = html.replace(
       /fetch\("[^"]*static\/contentIndex\.json"\)/g,
       `fetch("/${locale}/static/contentIndex.json")`,
