@@ -66,6 +66,24 @@ test.describe("Next and Refine bilingual publication", () => {
       .toHaveAttribute("href", "/en/posts/quartz-i18n-example");
   });
 
+  test("RSS serves both languages and keeps the default feed in Chinese", async ({ request }) => {
+    const [zh, en, defaultFeed] = await Promise.all([
+      request.get("/zh/rss.xml"),
+      request.get("/en/rss.xml"),
+      request.get("/rss.xml"),
+    ]);
+    for (const feed of [zh, en, defaultFeed]) {
+      await expect(feed).toBeOK();
+      expect(feed.headers()["content-type"]).toContain("application/rss+xml");
+    }
+    const [chineseXml, englishXml] = await Promise.all([zh.text(), en.text()]);
+    expect(chineseXml).toContain("<language>zh-CN</language>");
+    expect(chineseXml).toContain("<title>Chocolatey</title>");
+    expect(englishXml).toContain("<language>en-US</language>");
+    expect(englishXml).not.toContain("<title>Chocolatey</title>");
+    expect(await defaultFeed.text()).toBe(chineseXml);
+  });
+
   test("Chinese-only Chocolatey falls back with a notice and never enters English posts", async ({ page }) => {
     await page.goto("/zh/posts/chocolatey");
     await expect(page.getByRole("heading", { level: 1, name: "Chocolatey" }).first()).toBeVisible();

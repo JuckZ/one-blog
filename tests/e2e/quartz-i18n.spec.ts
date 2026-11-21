@@ -213,6 +213,22 @@ test.describe("Quartz bilingual publication", () => {
     );
   });
 
+  test("Quartz serves each locale's RSS and aliases the Chinese default", async ({ request }) => {
+    const [zh, en, defaultFeed] = await Promise.all([
+      request.get("/zh/rss.xml"),
+      request.get("/en/rss.xml"),
+      request.get("/rss.xml"),
+    ]);
+    for (const feed of [zh, en, defaultFeed]) {
+      await expect(feed).toBeOK();
+      expect(feed.headers()["content-type"]).toContain("application/rss+xml");
+    }
+    const [chineseXml, englishXml] = await Promise.all([zh.text(), en.text()]);
+    expect(chineseXml).toMatch(/<channel>[\s\S]*?<link>[^<]+\/zh\/?<\/link>/);
+    expect(englishXml).toMatch(/<channel>[\s\S]*?<link>[^<]+\/en\/?<\/link>/);
+    expect(await defaultFeed.text()).toBe(chineseXml);
+  });
+
   test("robots, sitemap, canonical and hreflang cover both Quartz locales", async ({ page, request, baseURL }) => {
     const robots = await request.get("/robots.txt");
     expect(robots.status()).toBe(200);
