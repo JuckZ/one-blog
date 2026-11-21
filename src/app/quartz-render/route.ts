@@ -2,6 +2,7 @@ import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 
 import publishedContent from "@/generated/published-content.json";
+import { rssHeaders } from "@/lib/rss";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -125,7 +126,10 @@ async function serve(request: Request, headOnly = false): Promise<Response> {
     return redirectToLocalizedPath(request, pathname);
   }
 
-  const outputPath = await findOutput(pathname);
+  const outputPathname = pathname === `/${firstSegment}/rss.xml`
+    ? `/${firstSegment}/index.xml`
+    : pathname;
+  const outputPath = await findOutput(outputPathname);
   const selectedPath = outputPath ?? safeOutputPath(`${localeFromPathname(pathname)}/404.html`);
   if (!selectedPath) return new Response("Not Found", { status: 404 });
 
@@ -138,7 +142,8 @@ async function serve(request: Request, headOnly = false): Promise<Response> {
 
   const extension = path.extname(selectedPath).toLowerCase();
   const isHtml = extension === ".html";
-  const headers = new Headers({
+  const isRss = selectedPath === path.join(quartzOutputRoot, firstSegment, "index.xml");
+  const headers = new Headers(isRss ? rssHeaders : {
     "Content-Type": contentTypes[extension] ?? "application/octet-stream",
     "Cache-Control": isHtml
       ? "public, max-age=0, must-revalidate"

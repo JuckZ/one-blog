@@ -3,44 +3,49 @@ import { NextResponse, type NextRequest } from "next/server";
 import { defaultLocale, isLocale, localeConfig } from "@/i18n";
 
 export function middleware(request: NextRequest) {
-  if (process.env.SITE_ENGINE === "quartz") {
+  const isQuartz = process.env.SITE_ENGINE === "quartz";
+  const requestedPathname = request.nextUrl.pathname;
+  const isDefaultFeed = requestedPathname === "/rss.xml" || (isQuartz && requestedPathname === "/index.xml");
+  const defaultFeedUrl = isDefaultFeed ? request.nextUrl.clone() : undefined;
+  if (defaultFeedUrl) defaultFeedUrl.pathname = `/${defaultLocale}/rss.xml`;
+
+  const { pathname } = defaultFeedUrl ?? request.nextUrl;
+  const [firstSegment] = pathname.split("/").filter(Boolean);
+  const pathLocale = isLocale(firstSegment) ? firstSegment : undefined;
+
+  if (isQuartz) {
     if (
-      request.nextUrl.pathname.startsWith("/quartz-render")
-      || request.nextUrl.pathname.startsWith("/_next")
-      || request.nextUrl.pathname === "/robots.txt"
-      || request.nextUrl.pathname === "/sitemap.xml"
+      pathname.startsWith("/quartz-render")
+      || pathname.startsWith("/_next")
+      || pathname === "/robots.txt"
+      || pathname === "/sitemap.xml"
     ) {
       return NextResponse.next();
     }
-    const segments = request.nextUrl.pathname.split("/").filter(Boolean);
-    const pathLocale = isLocale(segments[0]) ? segments[0] : undefined;
-    const savedLocale = request.cookies.get("one-blog-lang")?.value;
-    const browserPrefersEnglish = request.headers.get("accept-language")?.toLowerCase().startsWith("en") ?? false;
-    const preferredLocale = isLocale(savedLocale) ? savedLocale : browserPrefersEnglish ? "en" : defaultLocale;
-
     if (!pathLocale) {
+      const savedLocale = request.cookies.get("one-blog-lang")?.value;
+      const browserPrefersEnglish = request.headers.get("accept-language")?.toLowerCase().startsWith("en") ?? false;
+      const preferredLocale = isLocale(savedLocale) ? savedLocale : browserPrefersEnglish ? "en" : defaultLocale;
+
       const localizedUrl = request.nextUrl.clone();
-      localizedUrl.pathname = request.nextUrl.pathname === "/"
-        ? `/${preferredLocale}`
-        : `/${preferredLocale}${request.nextUrl.pathname}`;
+      localizedUrl.pathname = pathname === "/" ? `/${preferredLocale}` : `/${preferredLocale}${pathname}`;
       return NextResponse.redirect(localizedUrl);
     }
     const quartzUrl = request.nextUrl.clone();
     quartzUrl.pathname = "/quartz-render";
-    quartzUrl.searchParams.set("__path", request.nextUrl.pathname);
+    quartzUrl.searchParams.set("__path", pathname);
     const requestHeaders = new Headers(request.headers);
-    requestHeaders.set("x-one-blog-quartz-path", request.nextUrl.pathname);
+    requestHeaders.set("x-one-blog-quartz-path", pathname);
     return NextResponse.rewrite(quartzUrl, { request: { headers: requestHeaders } });
   }
 
-  const firstSegment = request.nextUrl.pathname.split("/").filter(Boolean)[0];
-  const locale = isLocale(firstSegment) ? firstSegment : defaultLocale;
-  const isPublicBlogRoute = isLocale(firstSegment);
+  const locale = pathLocale ?? defaultLocale;
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-one-blog-locale", localeConfig[locale].htmlLang);
-  requestHeaders.set("x-one-blog-public", isPublicBlogRoute ? "1" : "0");
+  requestHeaders.set("x-one-blog-public", pathLocale ? "1" : "0");
 
-  return NextResponse.next({ request: { headers: requestHeaders } });
+  const options = { request: { headers: requestHeaders } };
+  return defaultFeedUrl ? NextResponse.rewrite(defaultFeedUrl, options) : NextResponse.next(options);
 }
 
 export const config = {

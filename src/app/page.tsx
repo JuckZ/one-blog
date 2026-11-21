@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cookies, headers } from "next/headers";
 
-import { defaultLocale, isLocale } from "@/i18n";
+import { defaultLocale, isLocale, locales } from "@/i18n";
+import { getBlogFeed, rssMediaType } from "@/lib/rss";
+
+export const metadata: Metadata = {
+  alternates: { types: { [rssMediaType]: locales.map(getBlogFeed) } },
+};
 
 export default function IndexPage() {
   const savedLocale = cookies().get("one-blog-lang")?.value;

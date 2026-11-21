@@ -328,6 +328,10 @@ export async function postprocessQuartzLocale({ locale, outputRoot, siteOrigin, 
     const nav = `<nav id="one-blog-language-switcher" aria-label="${navLabel}"><span class="one-blog-language-shell">${globe}<span aria-current="page" aria-label="${currentAriaLabel}" title="${currentLabel}">${currentShortLabel}</span><a href="${escapeHtml(targetHref)}" hreflang="${targetLocale === "zh" ? "zh-CN" : "en-US"}" aria-label="${targetLabel}" title="${targetLabel}" data-one-blog-lang="${targetLocale}" data-router-ignore>${targetShortLabel}</a></span></nav>`;
 
     const headLinks = [`<link rel="stylesheet" href="/${locale}/static/one-blog-i18n.css" data-persist="true"/>`];
+    if (pathname === `/${locale}`) {
+      const feedUrl = `${siteOrigin ?? ""}/${locale}/rss.xml`;
+      headLinks.push(`<link rel="alternate" type="application/rss+xml" href="${escapeHtml(feedUrl)}" title="${currentLabel} RSS"/>`);
+    }
     if (post && siteOrigin) {
       headLinks.push(`<link rel="canonical" href="${escapeHtml(`${siteOrigin}${pathname}`)}"/>`);
       for (const [alternateLocale, alternatePath] of Object.entries(alternateUrls)) {

@@ -6,6 +6,7 @@ import { PostList } from "@/components/post-list";
 import { PublicHeader } from "@/components/public-header";
 import { getDictionary, isLocale, localeConfig } from "@/i18n";
 import { getPublishedPosts } from "@/lib/content";
+import { getBlogFeed, rssMediaType } from "@/lib/rss";
 
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
   if (!isLocale(params.locale)) return {};
@@ -16,6 +17,7 @@ export function generateMetadata({ params }: { params: { locale: string } }): Me
     alternates: {
       canonical: `/${params.locale}`,
       languages: { "zh-CN": "/zh", "en-US": "/en", "x-default": "/zh" },
+      types: { [rssMediaType]: [getBlogFeed(params.locale)] },
     },
     openGraph: { locale: localeConfig[params.locale].htmlLang.replace("-", "_") },
   };
